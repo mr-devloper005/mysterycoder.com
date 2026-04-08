@@ -15,6 +15,9 @@ import { cn } from "@/lib/utils";
 import { ArticleComments } from "@/components/tasks/article-comments";
 import { SchemaJsonLd } from "@/components/seo/schema-jsonld";
 import { RichContent, formatRichHtml } from "@/components/shared/rich-content";
+import { getFactoryState } from "@/design/factory/get-factory-state";
+import { getProductKind } from "@/design/factory/get-product-kind";
+import { DirectoryTaskDetailPage } from "@/design/products/directory/task-detail-page";
 
 type PostContent = {
   category?: string;
@@ -216,9 +219,38 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
     ],
   };
   const schemaPayload = articleSchema ? [articleSchema, breadcrumbSchema] : breadcrumbSchema;
+  const { recipe } = getFactoryState();
+  const productKind = getProductKind(recipe);
+  const isReaderSite = recipe.homeLayout === "article-home";
+
+  if (productKind === "directory" && (task === "listing" || task === "classified" || task === "profile")) {
+    return (
+      <div className="min-h-screen bg-[#f8fbff]">
+        <NavbarShell />
+        <DirectoryTaskDetailPage
+          task={task}
+          taskLabel={taskConfig?.label || task}
+          taskRoute={taskConfig?.route || "/"}
+          post={post}
+          description={description}
+          category={category}
+          images={images}
+          mapEmbedUrl={mapEmbedUrl}
+          related={related}
+        />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className={
+        isReaderSite
+          ? "min-h-screen bg-[#F6F6F6] text-[#111]"
+          : "min-h-screen bg-background"
+      }
+    >
       <NavbarShell />
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <SchemaJsonLd data={schemaPayload} />
@@ -237,8 +269,20 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
         >
           <div className={cn(isClassified ? "space-y-8" : "")}>
             {isArticle ? (
-              <div className="mx-auto w-full max-w-4xl space-y-6">
-                <h1 className="text-4xl font-semibold leading-tight text-foreground">
+              <div
+                className={
+                  isReaderSite
+                    ? "mx-auto w-full max-w-4xl space-y-6 rounded-[2rem] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] sm:p-10"
+                    : "mx-auto w-full max-w-4xl space-y-6"
+                }
+              >
+                <h1
+                  className={
+                    isReaderSite
+                      ? "text-4xl font-extrabold leading-tight tracking-tight text-[#111] sm:text-5xl"
+                      : "text-4xl font-semibold leading-tight text-foreground"
+                  }
+                >
                   {post.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">

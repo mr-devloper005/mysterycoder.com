@@ -55,6 +55,34 @@ export function Footer() {
   const enabledTasks = SITE_CONFIG.tasks.filter((task) => task.enabled)
   const primaryTask = enabledTasks.find((task) => task.key === recipe.primaryTask) || enabledTasks[0]
 
+  if (recipe.homeLayout === 'article-home') {
+    const year = new Date().getFullYear()
+    const links = [
+      { name: 'Terms', href: '/terms' },
+      { name: 'Privacy', href: '/privacy' },
+      { name: 'Payment Policy', href: '/terms' },
+      { name: 'Help', href: '/help' },
+      { name: 'Press', href: '/press' },
+      { name: 'Job', href: '/careers' },
+    ]
+    return (
+      <footer className="bg-[#222] px-4 py-12 text-center text-[13px] font-medium text-white sm:px-6">
+        <nav aria-label="Legal and resources">
+          <ul className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-3">
+            {links.map((item) => (
+              <li key={item.name}>
+                <Link href={item.href} className="hover:underline">
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <p className="mt-8 text-white/60">&copy; {year} {SITE_CONFIG.name}</p>
+      </footer>
+    )
+  }
+
   if (recipe.footer === 'minimal-footer') {
     return (
       <footer className="border-t border-[#d7deca] bg-[#f4f6ef] text-[#1f2617]">

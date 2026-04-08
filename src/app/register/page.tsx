@@ -57,7 +57,21 @@ function getRegisterConfig(kind: ReturnType<typeof getProductKind>) {
 export default function RegisterPage() {
   const { recipe } = getFactoryState()
   const productKind = getProductKind(recipe)
-  const config = getRegisterConfig(productKind)
+  const base = getRegisterConfig(productKind)
+  const config =
+    recipe.homeLayout === 'article-home'
+      ? {
+          ...base,
+          shell: 'bg-[#F6F6F6] text-[#111]',
+          panel:
+            'rounded-[2rem] border border-black/[0.06] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)]',
+          side: 'rounded-[2rem] border border-black/[0.06] bg-neutral-50',
+          muted: 'text-neutral-600',
+          action: 'rounded-full bg-black text-white hover:bg-neutral-900',
+          title: 'Create your reader account',
+          body: 'Join the community to publish articles, build your profile, and keep the same clean UI everywhere.',
+        }
+      : base
   const Icon = config.icon
 
   return (
@@ -67,7 +81,7 @@ export default function RegisterPage() {
         <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
           <div className={`rounded-[2rem] p-8 ${config.side}`}>
             <Icon className="h-8 w-8" />
-            <h1 className="mt-5 text-4xl font-semibold tracking-[-0.05em]">{config.title}</h1>
+            <h1 className={`mt-5 text-4xl tracking-[-0.05em] ${recipe.homeLayout === 'article-home' ? 'font-extrabold text-[#111]' : 'font-semibold'}`}>{config.title}</h1>
             <p className={`mt-5 text-sm leading-8 ${config.muted}`}>{config.body}</p>
             <div className="mt-8 grid gap-4">
               {['Different onboarding per product family', 'No repeated one-size-fits-all shell', 'Profile, publishing, and discovery aligned'].map((item) => (

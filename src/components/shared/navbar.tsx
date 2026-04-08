@@ -11,6 +11,7 @@ import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
 import { cn } from '@/lib/utils'
 import { siteContent } from '@/config/site.content'
 import { getFactoryState } from '@/design/factory/get-factory-state'
+import { ReaderNavbar } from '@/components/shared/reader-navbar'
 
 const NavbarAuthControls = dynamic(() => import('@/components/shared/navbar-auth-controls').then((mod) => mod.NavbarAuthControls), {
   ssr: false,
@@ -89,7 +90,7 @@ const directoryPalette = {
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, hasHydrated } = useAuth()
   const { recipe } = getFactoryState()
 
   const navigation = useMemo(() => SITE_CONFIG.tasks.filter((task) => task.enabled && task.key !== 'profile'), [])
@@ -101,6 +102,10 @@ export function Navbar() {
   }))
   const primaryTask = SITE_CONFIG.tasks.find((task) => task.key === recipe.primaryTask && task.enabled) || primaryNavigation[0]
   const isDirectoryProduct = recipe.homeLayout === 'listing-home' || recipe.homeLayout === 'classified-home'
+
+  if (recipe.homeLayout === 'article-home') {
+    return <ReaderNavbar />
+  }
 
   if (isDirectoryProduct) {
     const palette = directoryPalette[(recipe.brandPack === 'market-utility' ? 'market-utility' : 'directory-clean') as keyof typeof directoryPalette]
@@ -150,7 +155,9 @@ export function Navbar() {
               </Link>
             ) : null}
 
-            {isAuthenticated ? (
+            {!hasHydrated ? (
+              <div className="hidden h-10 w-32 animate-pulse rounded-full bg-black/5 md:block" aria-hidden />
+            ) : isAuthenticated ? (
               <NavbarAuthControls />
             ) : (
               <div className="hidden items-center gap-2 md:flex">
@@ -282,7 +289,9 @@ export function Navbar() {
             </Link>
           </Button>
 
-          {isAuthenticated ? (
+          {!hasHydrated ? (
+            <div className="hidden h-9 w-28 animate-pulse rounded-full bg-white/10 md:block" aria-hidden />
+          ) : isAuthenticated ? (
             <NavbarAuthControls />
           ) : (
             <div className="hidden items-center gap-2 md:flex">

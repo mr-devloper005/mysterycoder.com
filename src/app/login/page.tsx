@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { Bookmark, Building2, FileText, Image as ImageIcon, Sparkles } from 'lucide-react'
+import { LoginForm } from '@/components/auth/login-form'
 import { NavbarShell } from '@/components/shared/navbar-shell'
 import { Footer } from '@/components/shared/footer'
 import { getFactoryState } from '@/design/factory/get-factory-state'
@@ -57,7 +59,21 @@ function getLoginConfig(kind: ReturnType<typeof getProductKind>) {
 export default function LoginPage() {
   const { recipe } = getFactoryState()
   const productKind = getProductKind(recipe)
-  const config = getLoginConfig(productKind)
+  const base = getLoginConfig(productKind)
+  const config =
+    recipe.homeLayout === 'article-home'
+      ? {
+          ...base,
+          shell: 'bg-[#F6F6F6] text-[#111]',
+          panel:
+            'rounded-[2rem] border border-black/[0.06] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)]',
+          side: 'rounded-[2rem] border border-black/[0.06] bg-neutral-50',
+          muted: 'text-neutral-600',
+          action: 'rounded-full bg-black text-white hover:bg-neutral-900',
+          title: 'Sign in to your reader account',
+          body: 'Access articles, your profile, and publishing tools with the same look as the rest of the site.',
+        }
+      : base
   const Icon = config.icon
 
   return (
@@ -67,7 +83,7 @@ export default function LoginPage() {
         <section className="grid gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-stretch">
           <div className={`rounded-[2rem] p-8 ${config.side}`}>
             <Icon className="h-8 w-8" />
-            <h1 className="mt-5 text-4xl font-semibold tracking-[-0.05em]">{config.title}</h1>
+            <h1 className={`mt-5 text-4xl tracking-[-0.05em] ${recipe.homeLayout === 'article-home' ? 'font-extrabold text-[#111]' : 'font-semibold'}`}>{config.title}</h1>
             <p className={`mt-5 text-sm leading-8 ${config.muted}`}>{config.body}</p>
             <div className="mt-8 grid gap-4">
               {['Cleaner product-specific workflows', 'Palette and layout matched to the site family', 'Fewer repeated admin patterns'].map((item) => (
@@ -78,11 +94,12 @@ export default function LoginPage() {
 
           <div className={`rounded-[2rem] p-8 ${config.panel}`}>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Welcome back</p>
-            <form className="mt-6 grid gap-4">
-              <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Email address" />
-              <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Password" type="password" />
-              <button type="submit" className={`inline-flex h-12 items-center justify-center rounded-full px-6 text-sm font-semibold ${config.action}`}>Sign in</button>
-            </form>
+            <Suspense fallback={<div className="mt-6 h-40 animate-pulse rounded-xl bg-current/5" aria-hidden />}>
+              <LoginForm
+                inputClassName="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm"
+                buttonClassName={config.action}
+              />
+            </Suspense>
             <div className={`mt-6 flex items-center justify-between text-sm ${config.muted}`}>
               <Link href="/forgot-password" className="hover:underline">Forgot password?</Link>
               <Link href="/register" className="inline-flex items-center gap-2 font-semibold hover:underline">

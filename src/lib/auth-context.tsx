@@ -9,6 +9,8 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  /** True after reading persisted user from localStorage on the client */
+  hasHydrated: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   signup: (name: string, email: string, password: string) => Promise<void>
@@ -20,12 +22,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [hasHydrated, setHasHydrated] = useState(false)
 
   useEffect(() => {
     const storedUser = loadFromStorage<User | null>(storageKeys.user, null)
     if (storedUser) {
       setUser(storedUser)
     }
+    setHasHydrated(true)
   }, [])
 
   const buildUser = useCallback((overrides: Partial<User>) => {
@@ -33,8 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       month: 'long',
       year: 'numeric',
     })
+    const base: User =
+      currentUser ??
+      ({
+        id: '',
+        name: '',
+        email: '',
+        avatar: '/placeholder.svg?height=80&width=80',
+        bio: '',
+        joinedDate: '',
+        followers: 0,
+        following: 0,
+        isVerified: false,
+      } satisfies User)
     return {
-      ...currentUser,
+      ...base,
       id: `user-${Date.now()}`,
       joinedDate,
       followers: 0,
@@ -45,23 +62,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail || !password) {
+      throw new Error('Please enter your email and password.')
+    }
+
     setIsLoading(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Mock login - in production this would validate credentials
-    if (email && password) {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 400))
+
       const storedUser = loadFromStorage<User | null>(storageKeys.user, null)
-      const nextUser = storedUser?.email === email
-        ? storedUser
-        : buildUser({
-            email,
-            name: email.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '') || currentUser.name,
-          })
+      const nextUser =
+        storedUser?.email === trimmedEmail
+          ? storedUser
+          : buildUser({
+              email: trimmedEmail,
+              name: trimmedEmail.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '') || currentUser?.name || 'Reader',
+            })
+
       setUser(nextUser)
       saveToStorage(storageKeys.user, nextUser)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [buildUser])
 
   const logout = useCallback(() => {
@@ -72,20 +95,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
+    if (!name?.trim() || !email?.trim() || !password) {
+      throw new Error('Please fill in all fields.')
+    }
     setIsLoading(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Mock signup
-    if (name && email && password) {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 600))
       const nextUser = buildUser({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
       })
       setUser(nextUser)
       saveToStorage(storageKeys.user, nextUser)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [buildUser])
 
   const updateUser = useCallback((updates: Partial<User>) => {
@@ -103,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        hasHydrated,
         login,
         logout,
         signup,

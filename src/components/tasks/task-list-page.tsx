@@ -8,6 +8,11 @@ import { fetchTaskPosts } from '@/lib/task-data'
 import { SITE_CONFIG, getTaskConfig, type TaskKey } from '@/lib/site-config'
 import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/categories'
 import { taskIntroCopy } from '@/config/site.content'
+import {
+  isReaderPublicUi,
+  readerButtonPrimary,
+  readerPageBg,
+} from '@/config/reader-public'
 import { getFactoryState } from '@/design/factory/get-factory-state'
 
 const taskIcons: Record<TaskKey, any> = {
@@ -42,6 +47,10 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
   const taskConfig = getTaskConfig(task)
   const posts = await fetchTaskPosts(task, 30)
   const normalizedCategory = category ? normalizeCategory(category) : 'all'
+  const categoryLabel =
+    normalizedCategory === 'all'
+      ? 'All topics'
+      : CATEGORY_OPTIONS.find((c) => c.slug === normalizedCategory)?.name || normalizedCategory
   const intro = taskIntroCopy[task]
   const baseUrl = SITE_CONFIG.baseUrl.replace(/\/$/, '')
   const schemaItems = posts.slice(0, 10).map((post, index) => ({
@@ -52,33 +61,46 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
   }))
   const { recipe } = getFactoryState()
   const layoutKey = recipe.taskLayouts[task as keyof typeof recipe.taskLayouts] || `${task}-${task === 'listing' ? 'directory' : 'editorial'}`
-  const shellClass = variantShells[layoutKey as keyof typeof variantShells] || 'bg-background'
+  const isReader = isReaderPublicUi && (task === 'article' || task === 'profile')
+  const shellClass = isReader
+    ? readerPageBg
+    : variantShells[layoutKey as keyof typeof variantShells] || 'bg-background'
   const Icon = taskIcons[task] || LayoutGrid
 
   const isDark = ['image-masonry', 'image-portfolio', 'profile-creator'].includes(layoutKey)
-  const ui = isDark
-    ? {
-        muted: 'text-slate-300',
-        panel: 'border border-white/10 bg-white/6',
-        soft: 'border border-white/10 bg-white/5',
-        input: 'border-white/10 bg-white/6 text-white',
-        button: 'bg-white text-slate-950 hover:bg-slate-200',
-      }
-    : layoutKey.startsWith('article') || layoutKey.startsWith('sbm')
+  const readerUi = {
+    muted: 'text-neutral-600',
+    panel: 'rounded-2xl border border-black/[0.06] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)]',
+    soft: 'rounded-2xl border border-black/[0.06] bg-neutral-50',
+    input:
+      'h-11 rounded-full border border-neutral-200 bg-white px-4 text-sm text-neutral-900 outline-none focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200',
+    button: readerButtonPrimary,
+  }
+  const ui = isReader
+    ? readerUi
+    : isDark
       ? {
-          muted: 'text-[#72594a]',
-          panel: 'border border-[#dbc6b6] bg-white/90',
-          soft: 'border border-[#dbc6b6] bg-[#fff8ef]',
-          input: 'border border-[#dbc6b6] bg-white text-[#2f1d16]',
-          button: 'bg-[#2f1d16] text-[#fff4e4] hover:bg-[#452920]',
+          muted: 'text-slate-300',
+          panel: 'border border-white/10 bg-white/6',
+          soft: 'border border-white/10 bg-white/5',
+          input: 'border-white/10 bg-white/6 text-white',
+          button: 'bg-white text-slate-950 hover:bg-slate-200',
         }
-      : {
-          muted: 'text-slate-600',
-          panel: 'border border-slate-200 bg-white',
-          soft: 'border border-slate-200 bg-slate-50',
-          input: 'border border-slate-200 bg-white text-slate-950',
-          button: 'bg-slate-950 text-white hover:bg-slate-800',
-        }
+      : layoutKey.startsWith('article') || layoutKey.startsWith('sbm')
+        ? {
+            muted: 'text-[#72594a]',
+            panel: 'border border-[#dbc6b6] bg-white/90',
+            soft: 'border border-[#dbc6b6] bg-[#fff8ef]',
+            input: 'border border-[#dbc6b6] bg-white text-[#2f1d16]',
+            button: 'bg-[#2f1d16] text-[#fff4e4] hover:bg-[#452920]',
+          }
+        : {
+            muted: 'text-slate-600',
+            panel: 'border border-slate-200 bg-white',
+            soft: 'border border-slate-200 bg-slate-50',
+            input: 'border border-slate-200 bg-white text-slate-950',
+            button: 'bg-slate-950 text-white hover:bg-slate-800',
+          }
 
   return (
     <div className={`min-h-screen ${shellClass}`}>
@@ -142,26 +164,65 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
         ) : null}
 
         {layoutKey === 'article-editorial' || layoutKey === 'article-journal' ? (
-          <section className="mb-12 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-            <div>
-              <p className={`text-xs uppercase tracking-[0.3em] ${ui.muted}`}>{taskConfig?.label || task}</p>
-              <h1 className="mt-3 max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-foreground">{taskConfig?.description || 'Latest posts'}</h1>
-              <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>This reading surface uses slower pacing, stronger typographic hierarchy, and more breathing room so long-form content feels intentional rather than squeezed into a generic feed.</p>
-            </div>
-            <div className={`rounded-[2rem] p-6 ${ui.panel}`}>
-              <p className={`text-xs font-semibold uppercase tracking-[0.24em] ${ui.muted}`}>Reading note</p>
-              <p className={`mt-4 text-sm leading-7 ${ui.muted}`}>Use category filters to jump between topics without collapsing the page into the same repeated card rhythm used by other task types.</p>
-              <form className="mt-5 flex items-center gap-3" action={taskConfig?.route || '#'}>
-                <select name="category" defaultValue={normalizedCategory} className={`h-11 flex-1 rounded-xl px-3 text-sm ${ui.input}`}>
-                  <option value="all">All categories</option>
-                  {CATEGORY_OPTIONS.map((item) => (
-                    <option key={item.slug} value={item.slug}>{item.name}</option>
-                  ))}
-                </select>
-                <button type="submit" className={`h-11 rounded-xl px-4 text-sm font-medium ${ui.button}`}>Apply</button>
-              </form>
-            </div>
-          </section>
+          isReader && task === 'article' ? (
+            <section className="mb-10 lg:mb-14">
+              <div className={`${ui.panel} p-8 lg:p-10`}>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">{taskConfig?.label || 'Articles'}</p>
+                <h1 className="mt-3 max-w-4xl text-4xl font-extrabold tracking-tight text-[#111] lg:text-5xl">
+                  {normalizedCategory === 'all' ? 'Articles' : categoryLabel}
+                </h1>
+                <p className={`mt-4 max-w-2xl text-base leading-relaxed ${ui.muted}`}>
+                  {normalizedCategory === 'all'
+                    ? 'Browse long reads and essays — filter by topic to match the same categories as on the home page.'
+                    : `Showing articles in ${categoryLabel}. Change the category below to sync the list.`}
+                </p>
+                <form className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end" method="get" action={taskConfig?.route || '/articles'}>
+                  <div className="min-w-0 flex-1">
+                    <label htmlFor="article-category" className="sr-only">
+                      Category
+                    </label>
+                    <select
+                      id="article-category"
+                      name="category"
+                      defaultValue={normalizedCategory}
+                      className={`w-full min-w-0 sm:max-w-md ${ui.input}`}
+                    >
+                      <option value="all">All categories</option>
+                      {CATEGORY_OPTIONS.map((item) => (
+                        <option key={item.slug} value={item.slug}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button type="submit" className={`shrink-0 ${ui.button}`}>
+                    Apply filter
+                  </button>
+                </form>
+              </div>
+            </section>
+          ) : (
+            <section className="mb-12 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+              <div>
+                <p className={`text-xs uppercase tracking-[0.3em] ${ui.muted}`}>{taskConfig?.label || task}</p>
+                <h1 className="mt-3 max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-foreground">{taskConfig?.description || 'Latest posts'}</h1>
+                <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>This reading surface uses slower pacing, stronger typographic hierarchy, and more breathing room so long-form content feels intentional rather than squeezed into a generic feed.</p>
+              </div>
+              <div className={`rounded-[2rem] p-6 ${ui.panel}`}>
+                <p className={`text-xs font-semibold uppercase tracking-[0.24em] ${ui.muted}`}>Reading note</p>
+                <p className={`mt-4 text-sm leading-7 ${ui.muted}`}>Use category filters to jump between topics without collapsing the page into the same repeated card rhythm used by other task types.</p>
+                <form className="mt-5 flex items-center gap-3" action={taskConfig?.route || '#'}>
+                  <select name="category" defaultValue={normalizedCategory} className={`h-11 flex-1 rounded-xl px-3 text-sm ${ui.input}`}>
+                    <option value="all">All categories</option>
+                    {CATEGORY_OPTIONS.map((item) => (
+                      <option key={item.slug} value={item.slug}>{item.name}</option>
+                    ))}
+                  </select>
+                  <button type="submit" className={`h-11 rounded-xl px-4 text-sm font-medium ${ui.button}`}>Apply</button>
+                </form>
+              </div>
+            </section>
+          )
         ) : null}
 
         {layoutKey === 'image-masonry' || layoutKey === 'image-portfolio' ? (
@@ -182,16 +243,55 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
         ) : null}
 
         {layoutKey === 'profile-creator' || layoutKey === 'profile-business' ? (
-          <section className={`mb-12 rounded-[2.2rem] p-8 shadow-[0_24px_70px_rgba(15,23,42,0.1)] ${ui.panel}`}>
-            <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-              <div className={`min-h-[240px] rounded-[2rem] ${ui.soft}`} />
-              <div>
-                <p className={`text-xs uppercase tracking-[0.3em] ${ui.muted}`}>{taskConfig?.label || task}</p>
-                <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-foreground">Profiles with stronger identity, trust, and reputation cues.</h1>
-                <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>This layout prioritizes the person or business surface first, then lets the feed continue below without borrowing the same visual logic used by articles or listings.</p>
+          isReader && task === 'profile' ? (
+            <section className="mb-10 lg:mb-14">
+              <div className={`${ui.panel} p-8 lg:p-10`}>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">{taskConfig?.label || 'Profiles'}</p>
+                <h1 className="mt-3 max-w-4xl text-4xl font-extrabold tracking-tight text-[#111] lg:text-5xl">
+                  {normalizedCategory === 'all' ? 'Creators and profiles' : `${categoryLabel}`}
+                </h1>
+                <p className={`mt-4 max-w-2xl text-base leading-relaxed ${ui.muted}`}>
+                  {normalizedCategory === 'all'
+                    ? 'Discover writers and creators — use categories to narrow the list, matching filters from the home page.'
+                    : `Showing profiles tagged with ${categoryLabel}. Adjust the filter to explore other topics.`}
+                </p>
+                <form className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end" method="get" action={taskConfig?.route || '/profile'}>
+                  <div className="min-w-0 flex-1">
+                    <label htmlFor="profile-category" className="sr-only">
+                      Category
+                    </label>
+                    <select
+                      id="profile-category"
+                      name="category"
+                      defaultValue={normalizedCategory}
+                      className={`w-full min-w-0 sm:max-w-md ${ui.input}`}
+                    >
+                      <option value="all">All categories</option>
+                      {CATEGORY_OPTIONS.map((item) => (
+                        <option key={item.slug} value={item.slug}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button type="submit" className={`shrink-0 ${ui.button}`}>
+                    Apply filter
+                  </button>
+                </form>
               </div>
-            </div>
-          </section>
+            </section>
+          ) : (
+            <section className={`mb-12 rounded-[2.2rem] p-8 shadow-[0_24px_70px_rgba(15,23,42,0.1)] ${ui.panel}`}>
+              <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+                <div className={`min-h-[240px] rounded-[2rem] ${ui.soft}`} />
+                <div>
+                  <p className={`text-xs uppercase tracking-[0.3em] ${ui.muted}`}>{taskConfig?.label || task}</p>
+                  <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-foreground">Profiles with stronger identity, trust, and reputation cues.</h1>
+                  <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>This layout prioritizes the person or business surface first, then lets the feed continue below without borrowing the same visual logic used by articles or listings.</p>
+                </div>
+              </div>
+            </section>
+          )
         ) : null}
 
         {layoutKey === 'classified-bulletin' || layoutKey === 'classified-market' ? (

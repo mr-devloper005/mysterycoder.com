@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { FileText, Building2, LayoutGrid, Tag, Github, Twitter, Linkedin, Image as ImageIcon, User, ArrowRight, Sparkles } from 'lucide-react'
 import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
-import { siteContent } from '@/config/site.content'
 import { getFactoryState } from '@/design/factory/get-factory-state'
 
 const taskIcons: Record<TaskKey, any> = {
@@ -60,7 +59,7 @@ export function Footer() {
     const links = [
       { name: 'Terms', href: '/terms' },
       { name: 'Privacy', href: '/privacy' },
-      { name: 'Payment Policy', href: '/terms' },
+      { name: 'Payment Policy', href: '/payment-policy' },
       { name: 'Help', href: '/help' },
       { name: 'Press', href: '/press' },
       { name: 'Job', href: '/careers' },
@@ -109,15 +108,16 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr_1fr]">
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-7">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/12 bg-white/8 p-1.5">
-                  <img src="/favicon.png?v=20260401" alt={`${SITE_CONFIG.name} logo`} width="48" height="48" className="h-full w-full object-contain" />
-                </div>
-                <div>
-                  <p className="text-lg font-semibold">{SITE_CONFIG.name}</p>
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{siteContent.footer.tagline}</p>
-                </div>
-              </div>
+              <Link href="/" className="inline-flex items-center rounded-2xl border border-white/12 bg-white/8 px-3 py-2">
+                <img
+                  src="/favicon.png?v=20260413"
+                  alt=""
+                  width={220}
+                  height={56}
+                  className="h-11 w-auto max-w-[220px] object-contain object-left"
+                />
+                <span className="sr-only">{SITE_CONFIG.name}</span>
+              </Link>
               <p className="mt-5 max-w-md text-sm leading-7 text-slate-300">{SITE_CONFIG.description}</p>
               {primaryTask ? (
                 <Link href={primaryTask.route} className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#8df0c8] px-4 py-2.5 text-sm font-semibold text-[#07111f] hover:bg-[#77dfb8]">
@@ -201,14 +201,15 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_0.8fr]">
           <div>
-            <Link href="/" className="flex items-center gap-3">
-              <div className="h-11 w-11 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-                <img src="/favicon.png?v=20260401" alt={`${SITE_CONFIG.name} logo`} width="44" height="44" className="h-full w-full object-contain" />
-              </div>
-              <div>
-                <span className="block text-lg font-semibold">{SITE_CONFIG.name}</span>
-                <span className="text-xs uppercase tracking-[0.22em] text-slate-500">{siteContent.footer.tagline}</span>
-              </div>
+            <Link href="/" className="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+              <img
+                src="/favicon.png?v=20260413"
+                alt=""
+                width={220}
+                height={56}
+                className="h-10 w-auto max-w-[220px] object-contain object-left"
+              />
+              <span className="sr-only">{SITE_CONFIG.name}</span>
             </Link>
             <p className="mt-5 max-w-sm text-sm leading-7 text-slate-600">{SITE_CONFIG.description}</p>
           </div>

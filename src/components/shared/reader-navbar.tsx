@@ -22,7 +22,6 @@ import {
 import { useAuth } from '@/lib/auth-context'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { cn } from '@/lib/utils'
-import { siteContent } from '@/config/site.content'
 
 const NavbarAuthControls = dynamic(() => import('@/components/shared/navbar-auth-controls').then((mod) => mod.NavbarAuthControls), {
   ssr: false,
@@ -50,14 +49,14 @@ export function ReaderNavbar() {
   return (
     <header className={cn('sticky top-0 z-50 w-full', shell)}>
       <nav className="mx-auto flex h-[72px] max-w-7xl items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label={`${SITE_CONFIG.name} home`}>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FF6600] text-xl font-black leading-none text-white shadow-sm" aria-hidden>
-            {SITE_CONFIG.name.trim().slice(0, 1).toUpperCase() || 'M'}
-          </div>
-          <div className="hidden min-w-0 sm:block">
-            <span className="block truncate text-lg font-bold tracking-tight">{SITE_CONFIG.name}</span>
-            <span className="block text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-500">{siteContent.navbar.tagline}</span>
-          </div>
+        <Link href="/" className="flex shrink-0 items-center" aria-label={`${SITE_CONFIG.name} home`}>
+          <img
+            src="/favicon.png?v=20260413"
+            alt=""
+            width={220}
+            height={56}
+            className="h-9 w-auto max-w-[min(200px,46vw)] object-contain object-left sm:h-10 sm:max-w-[220px]"
+          />
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">

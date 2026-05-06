@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { Footer } from "@/components/shared/footer";
 import { NavbarShell } from "@/components/shared/navbar-shell";
 import { ContentImage } from "@/components/shared/content-image";
-import { TaskPostCard } from "@/components/shared/task-post-card";
 import { Button } from "@/components/ui/button";
 import { SchemaJsonLd } from "@/components/seo/schema-jsonld";
-import { buildPostUrl } from "@/lib/task-data";
 import { buildPostMetadata, buildTaskMetadata } from "@/lib/seo";
 import { fetchTaskPostBySlug, fetchTaskPosts } from "@/lib/task-data";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { ProfileDetailTabs } from "@/components/tasks/profile-detail-tabs";
+import { ChevronRight, ExternalLink, Star } from "lucide-react";
 
 export const revalidate = 3;
 
@@ -79,7 +79,6 @@ export default async function ProfileDetailPage({ params }: { params: Promise<{ 
     post.summary ||
     "Profile details will appear here once available.";
   const descriptionHtml = formatRichHtml(description);
-  const suggestedArticles = await fetchTaskPosts("article", 6);
   const baseUrl = SITE_CONFIG.baseUrl.replace(/\/$/, "");
   const breadcrumbData = {
     "@context": "https://schema.org",
@@ -111,81 +110,145 @@ export default async function ProfileDetailPage({ params }: { params: Promise<{ 
       <NavbarShell />
       <main className="mx-auto w-full max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
         <SchemaJsonLd data={breadcrumbData} />
-        <section className="rounded-3xl border border-border/60 bg-white/90 p-8 shadow-sm md:p-12">
-          <div className="grid gap-8 md:grid-cols-[200px_1fr] md:items-start">
-            <div className="flex justify-center md:justify-start">
-              <div className="relative h-36 w-36 overflow-hidden rounded-full border border-border/70 bg-muted">
-                {logoUrl ? (
-                  <ContentImage src={logoUrl} alt={post.title} fill className="object-cover" sizes="144px" intrinsicWidth={144} intrinsicHeight={144} />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-muted-foreground">
-                    {post.title.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
+
+        <section className="relative overflow-hidden rounded-[2.4rem] border border-border/60 bg-slate-950 text-white shadow-[0_28px_80px_rgba(15,23,42,0.25)]">
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),rgba(0,0,0,0.75)_60%)]" />
+            <div className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(to_right,rgba(255,255,255,0.18)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:40px_40px]" />
+            {logoUrl ? (
+              <div className="absolute inset-0 opacity-35">
+                <ContentImage src={logoUrl} alt="" fill className="object-cover blur-[2px]" />
               </div>
+            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/10 via-slate-950/70 to-slate-950" />
+          </div>
+
+          <div className="relative px-6 pb-9 pt-7 sm:px-10 sm:pb-10">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-white/70">
+              <Link href="/" className="rounded-full bg-white/10 px-3 py-1 hover:bg-white/15">
+                Home
+              </Link>
+              <span className="text-white/40">/</span>
+              <Link href="/profile" className="rounded-full bg-white/10 px-3 py-1 hover:bg-white/15">
+                Profiles
+              </Link>
+              <span className="text-white/40">/</span>
+              <span className="rounded-full bg-white/10 px-3 py-1">{brandName}</span>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{brandName}</h1>
-              {domain ? (
-                <p className="mt-1 text-sm font-medium text-muted-foreground">{domain}</p>
-              ) : null}
-              <article
-                className="article-content prose prose-slate mt-6 max-w-2xl text-base leading-relaxed prose-p:my-4 prose-a:text-primary prose-a:underline prose-strong:font-semibold"
-                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
-              />
-              {website ? (
-                <div className="mt-8">
-                  <Button asChild size="lg" className="px-7 text-base">
-                    <Link href={website} target="_blank" rel="noopener noreferrer">
-                      Visit Official Site
-                    </Link>
-                  </Button>
+
+            <div className="mt-7 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex items-start gap-5">
+                <div className="relative size-20 overflow-hidden rounded-3xl border border-white/15 bg-white/10 shadow-[0_18px_60px_rgba(0,0,0,0.35)] sm:size-24">
+                  {logoUrl ? (
+                    <ContentImage
+                      src={logoUrl}
+                      alt={post.title}
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                      intrinsicWidth={192}
+                      intrinsicHeight={192}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-white/70">
+                      {post.title.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
                 </div>
-              ) : null}
+                <div className="max-w-2xl">
+                  <h1 className="text-3xl font-semibold tracking-[-0.05em] text-white sm:text-4xl">
+                    {brandName}
+                  </h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
+                    {domain ? <span className="font-medium text-white/80">{domain}</span> : null}
+                    <span className="inline-flex items-center gap-2">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span className="text-white/80">Featured</span>
+                    </span>
+                    {website ? (
+                      <a
+                        href={website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 underline underline-offset-4 hover:text-white"
+                      >
+                        Official link <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {website ? (
+                  <Button asChild size="lg" className="rounded-full bg-emerald-500 px-7 text-base font-semibold text-emerald-950 hover:bg-emerald-400">
+                    <a href={website} target="_blank" rel="noreferrer">
+                      Visit website <ChevronRight className="h-4 w-4" />
+                    </a>
+                  </Button>
+                ) : null}
+                <Button asChild size="lg" variant="secondary" className="rounded-full px-7 text-base font-semibold">
+                  <Link href="/profile">Browse profiles</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
 
-        {suggestedArticles.length ? (
-          <section className="mt-12">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-foreground">Suggested articles</h2>
-              <Link href="/articles" className="text-sm font-medium text-primary hover:underline">
-                View all
-              </Link>
-            </div>
-            <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {suggestedArticles.slice(0, 3).map((article) => (
-                <TaskPostCard
-                  key={article.id}
-                  post={article}
-                  href={buildPostUrl("article", article.slug)}
-                  compact
-                />
-              ))}
-            </div>
-            <nav className="mt-6 rounded-2xl border border-border bg-card/60 p-4">
-              <p className="text-sm font-semibold text-foreground">Related links</p>
-              <ul className="mt-2 space-y-2 text-sm">
-                {suggestedArticles.slice(0, 3).map((article) => (
-                  <li key={`related-${article.id}`}>
-                    <Link
-                      href={buildPostUrl("article", article.slug)}
-                      className="text-primary underline-offset-4 hover:underline"
-                    >
-                      {article.title}
-                    </Link>
-                  </li>
-                ))}
-                <li>
-                  <Link href="/profile" className="text-primary underline-offset-4 hover:underline">
-                    Browse all profiles
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </section>
-        ) : null}
+        <section className="mt-10">
+          <ProfileDetailTabs
+            tabs={[
+              {
+                id: "about",
+                label: "About",
+                content: (
+                  <div className="rounded-2xl border border-border/60 bg-background p-6">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                      Audience
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-foreground/80">
+                      Builders, creators, and teams looking for tools and services like this.
+                    </p>
+                    <div className="mt-6 border-t border-border/50 pt-6">
+                      <h2 className="text-lg font-semibold text-foreground">About {brandName}</h2>
+                      <article
+                        className="article-content prose prose-slate mt-4 max-w-none text-base leading-relaxed prose-p:my-4 prose-a:text-primary prose-a:underline prose-strong:font-semibold"
+                        dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+                      />
+                    </div>
+                  </div>
+                ),
+              },
+            ]}
+            rightRail={
+              <>
+                <div className="rounded-2xl border border-border/60 bg-background p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Quick facts</p>
+                  <div className="mt-4 grid gap-3 text-sm">
+                    {domain ? (
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-muted-foreground">Domain</span>
+                        <span className="truncate font-medium text-foreground">{domain}</span>
+                      </div>
+                    ) : null}
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-muted-foreground">Category</span>
+                      <span className="truncate font-medium text-foreground">Profile</span>
+                    </div>
+                  </div>
+                  {website ? (
+                    <Button asChild className="mt-5 w-full rounded-full">
+                      <Link href={website} target="_blank" rel="noopener noreferrer">
+                        Open website
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
+              </>
+            }
+          />
+        </section>
+
       </main>
       <Footer />
     </div>

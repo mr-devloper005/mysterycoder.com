@@ -217,40 +217,7 @@ export function ReaderHome({
         </div>
       </section>
 
-      {/* Profiles */}
-      {profiles.length ? (
-        <section className="border-t border-black/[0.06] bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Creators to watch</h2>
-                <p className="mt-2 max-w-xl text-neutral-700">Profiles with perspective — follow for the next drop.</p>
-              </div>
-              <Link href={profileRoute} className="text-sm font-semibold text-[#006d6d] hover:underline">
-                View all
-              </Link>
-            </div>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {profiles.map((post) => (
-                <Link
-                  key={post.id}
-                  href={`/profile/${post.slug}`}
-                  className="group overflow-hidden rounded-2xl border border-black/[0.06] bg-[#FFFBF7] shadow-sm transition hover:shadow-md"
-                >
-                  <div className="relative h-44 bg-neutral-100">
-                    <ContentImage src={getPostImage(post)} alt={post.title} fill className="object-cover transition group-hover:scale-[1.02]" />
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold">{post.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{post.summary || 'Writer & creator on ' + SITE_CONFIG.name}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
+      
       {/* Closing CTA */}
       <section id="get-app" className="relative scroll-mt-24 overflow-hidden bg-[#F9EBE0]">
         <div className="pointer-events-none absolute inset-0 opacity-40">

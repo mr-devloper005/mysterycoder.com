@@ -4,6 +4,7 @@ import { Footer } from '@/components/shared/footer'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { getFactoryState } from '@/design/factory/get-factory-state'
 import { getProductKind } from '@/design/factory/get-product-kind'
+import { Button } from '@/components/ui/button'
 
 function getTone(kind: ReturnType<typeof getProductKind>) {
   if (kind === 'directory') {
@@ -46,6 +47,11 @@ export default function ContactPage() {
   const { recipe } = getFactoryState()
   const productKind = getProductKind(recipe)
   const tone = getTone(productKind)
+  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'contact@mysterycoder.com'
+
+  const handleEmailClick = () => {
+    window.location.href = `mailto:${contactEmail}`
+  }
   const lanes =
     productKind === 'directory'
       ? [
@@ -97,9 +103,16 @@ export default function ContactPage() {
               <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Your name" />
               <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Email address" />
               <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="What do you need help with?" />
-              <textarea className="min-h-[180px] rounded-2xl border border-current/10 bg-transparent px-4 py-3 text-sm" placeholder="Share the full context so we can respond with the right next step." />
+              <textarea className="min-h-[180px] rounded-2xl border border-current/10 bg-transparent px-4 py-3 text-sm" placeholder="Share full context so we can respond with the right next step." />
               <button type="submit" className={`inline-flex h-12 items-center justify-center rounded-full px-6 text-sm font-semibold ${tone.action}`}>Send message</button>
             </form>
+            <div className="mt-6">
+              <p className="text-sm font-medium text-muted-foreground mb-3">Or send us an email directly</p>
+              <Button onClick={handleEmailClick} className={`w-full justify-start ${tone.action}`}>
+                <Mail className="h-4 w-4 mr-2" />
+                Email us at {contactEmail}
+              </Button>
+            </div>
           </div>
         </section>
       </main>

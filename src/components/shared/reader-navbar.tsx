@@ -74,7 +74,21 @@ export function ReaderNavbar() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-                  </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-100">
+              Community
+              <ChevronDown className="h-4 w-4 opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem asChild>
+                <Link href="/community">Community hub</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/help">Help</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <form
           action="/search"
@@ -181,6 +195,9 @@ export function ReaderNavbar() {
                 {task.label}
               </Link>
             ))}
+            <Link href="/community" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold hover:bg-neutral-50" onClick={() => setOpen(false)}>
+              Community
+            </Link>
             {articleTask ? (
               <Link
                 href="/create/article"

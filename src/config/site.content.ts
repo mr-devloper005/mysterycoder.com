@@ -134,7 +134,9 @@ export const taskIntroCopy: Record<
       'Use this section to browse thoughtful posts, revisit useful writing, and move into supporting content when you want more context.',
     ],
     links: [
-      { label: 'Browse resources', href: '/articles' },
+      { label: 'Explore listings', href: '/listings' },
+      { label: 'Open image sharing', href: '/image-sharing' },
+      { label: 'Browse resources', href: '/pdf' },
     ],
   },
   classified: {
@@ -171,7 +173,9 @@ export const taskIntroCopy: Record<
       'Browse profiles to understand people and brands more clearly, then continue into related content from the same source.',
     ],
     links: [
+      { label: 'Open listings', href: '/listings' },
       { label: 'Read articles', href: '/articles' },
+      { label: 'Browse image sharing', href: '/image-sharing' },
     ],
   },
   sbm: {

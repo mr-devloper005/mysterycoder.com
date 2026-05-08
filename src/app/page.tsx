@@ -298,10 +298,23 @@ function VisualHome({ primaryTask, imagePosts, profilePosts, articlePosts }: { p
           </div>
         </div>
 
-        <div className={`mt-12 rounded-[2rem] p-7 ${tone.panel}`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Visual notes</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">Larger media surfaces, fewer boxes, stronger pacing.</h2>
-          <p className={`mt-4 max-w-2xl text-sm leading-8 ${tone.muted}`}>This product avoids business-directory density and publication framing. The homepage behaves more like a visual board, with profile surfaces and imagery leading the experience.</p>
+        <div className="mt-12 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className={`rounded-[2rem] p-7 ${tone.panel}`}>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Visual notes</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">Larger media surfaces, fewer boxes, stronger pacing.</h2>
+            <p className={`mt-4 max-w-2xl text-sm leading-8 ${tone.muted}`}>This product avoids business-directory density and publication framing. The homepage behaves more like a visual board, with profile surfaces and imagery leading the experience.</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {creators.map((post) => (
+              <Link key={post.id} href={`/profile/${post.slug}`} className={`rounded-[1.8rem] p-5 ${tone.soft}`}>
+                <div className="relative h-40 overflow-hidden rounded-[1.2rem]">
+                  <ContentImage src={getPostImage(post)} alt={post.title} fill className="object-cover" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold">{post.title}</h3>
+                <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>{post.summary || 'Creator profile and visual identity surface.'}</p>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </main>

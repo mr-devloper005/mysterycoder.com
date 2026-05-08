@@ -1,7 +1,7 @@
 import { ContentImage } from "@/components/shared/content-image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BookOpen, ChevronRight, Globe, Mail, MapPin, Phone, Tag } from "lucide-react";
+import { MapPin, Globe, Phone, Tag, Mail } from "lucide-react";
 import { NavbarShell } from "@/components/shared/navbar-shell";
 import { Footer } from "@/components/shared/footer";
 import { TaskPostCard } from "@/components/shared/task-post-card";
@@ -18,7 +18,6 @@ import { RichContent, formatRichHtml } from "@/components/shared/rich-content";
 import { getFactoryState } from "@/design/factory/get-factory-state";
 import { getProductKind } from "@/design/factory/get-product-kind";
 import { DirectoryTaskDetailPage } from "@/design/products/directory/task-detail-page";
-import { ArticleActionPanel } from "@/components/tasks/article-action-panel";
 
 type PostContent = {
   category?: string;
@@ -143,9 +142,6 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
   const description = content.description || post.summary || "Details coming soon.";
   const descriptionHtml = !isArticle ? formatRichHtml(description, "Details coming soon.") : "";
   const articleHtml = isArticle ? formatArticleHtml(content, post) : "";
-  const articleFullHtml = isArticle
-    ? formatRichHtml(typeof content.body === "string" ? content.body : "", "")
-    : "";
   const articleSummary =
     post.summary ||
     (typeof content.excerpt === "string" ? content.excerpt : "") ||
@@ -154,7 +150,13 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
     (typeof content.author === "string" && content.author.trim()) ||
     post.authorName ||
     "Editorial Team";
-  const articleDate = "";
+  const articleDate = post.publishedAt
+    ? new Date(post.publishedAt).toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
   const postTags = Array.isArray(post.tags) ? post.tags.filter((tag) => typeof tag === "string") : [];
   const location = content.address || content.location;
   const images = getImageUrls(post, content);
@@ -259,22 +261,21 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
           ← Back to {taskConfig?.label || "posts"}
         </Link>
 
-        {isArticle ? (
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-            <article
-              className={
-                isReaderSite
-                  ? "w-full space-y-8 rounded-[2rem] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] sm:p-10"
-                  : "w-full space-y-8"
-              }
-            >
-              <header id="title-authors" className="space-y-5">
-                <div className="text-sm text-muted-foreground">
-                  <span className="inline-flex items-center gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    {category}
-                  </span>
-                </div>
+        <div
+          className={cn(
+            "grid gap-10",
+            hideSidebar ? "lg:grid-cols-1" : "lg:grid-cols-[2fr_1fr]"
+          )}
+        >
+          <div className={cn(isClassified ? "space-y-8" : "")}>
+            {isArticle ? (
+              <div
+                className={
+                  isReaderSite
+                    ? "mx-auto w-full max-w-4xl space-y-6 rounded-[2rem] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] sm:p-10"
+                    : "mx-auto w-full max-w-4xl space-y-6"
+                }
+              >
                 <h1
                   className={
                     isReaderSite
@@ -301,6 +302,9 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
                     ))}
                   </div>
                 ) : null}
+                {articleSummary ? (
+                  <p className="text-base leading-7 text-muted-foreground">{articleSummary}</p>
+                ) : null}
                 {images[0] ? (
                   <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl border border-border bg-muted">
                     <ContentImage
@@ -313,89 +317,11 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
                     />
                   </div>
                 ) : null}
-              </header>
-
-              <section id="abstract" className="space-y-4">
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Abstract</h2>
-                {articleSummary ? (
-                  <p className="text-base leading-7 text-muted-foreground">{articleSummary}</p>
-                ) : (
-                  <p className="text-base leading-7 text-muted-foreground">{description}</p>
-                )}
-              </section>
-
-              <section id="full-text" className="space-y-4">
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Full text</h2>
-                <RichContent
-                  html={articleFullHtml && articleFullHtml.trim() ? articleFullHtml : articleHtml}
-                  className="leading-8 prose-p:my-6 prose-h2:my-8 prose-h3:my-6 prose-ul:my-6"
-                />
-              </section>
-
-              <section id="comments" className="space-y-4">
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Comments</h2>
+                <RichContent html={articleHtml} className="leading-8 prose-p:my-6 prose-h2:my-8 prose-h3:my-6 prose-ul:my-6" />
                 <ArticleComments slug={post.slug} />
-              </section>
-            </article>
-
-            <aside className="space-y-6 lg:sticky lg:top-24">
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Actions
-                </p>
-                <div className="mt-4">
-                  <ArticleActionPanel url={articleUrl} title={post.title} />
-                </div>
               </div>
+            ) : null}
 
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Page navigation
-                </p>
-                <nav className="mt-4 grid gap-1 text-sm">
-                  {[
-                    { id: "title-authors", label: "Title & authors" },
-                    { id: "abstract", label: "Abstract" },
-                    { id: "full-text", label: "Full text" },
-                    { id: "comments", label: "Comments" },
-                    ...(related.length ? [{ id: "related", label: "Similar articles" }] : []),
-                  ].map((item) => (
-                    <a
-                      key={item.id}
-                      href={`#${item.id}`}
-                      className="group flex items-center justify-between rounded-lg px-2.5 py-2 text-muted-foreground hover:bg-accent hover:text-foreground"
-                    >
-                      <span>{item.label}</span>
-                      <ChevronRight className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
-                    </a>
-                  ))}
-                </nav>
-              </div>
-
-              {typeof content.website === "string" && content.website.trim() ? (
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Full text link
-                  </p>
-                  <Button asChild variant="outline" className="mt-4 w-full">
-                    <a href={content.website} target="_blank" rel="noreferrer">
-                      Open source
-                    </a>
-                  </Button>
-                </div>
-              ) : null}
-            </aside>
-          </div>
-        ) : null}
-
-        {!isArticle ? (
-          <div
-            className={cn(
-              "grid gap-10",
-              hideSidebar ? "lg:grid-cols-1" : "lg:grid-cols-[2fr_1fr]"
-            )}
-          >
-            <div className={cn(isClassified ? "space-y-8" : "")}>
             {!isArticle ? (
               <>
                 {!isBookmark ? (
@@ -492,7 +418,7 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
               </div>
             ) : null}
 
-            </div>
+          </div>
 
           {!hideSidebar ? (
             <aside className="space-y-6">
@@ -562,14 +488,13 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
           </aside>
           ) : null}
         </div>
-        ) : null}
 
-        <section id="related" className="mt-12">
+        <section className="mt-12">
           {related.length ? (
             <>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">
-                {isArticle ? "Similar articles" : `More in ${category}`}
+                More in {category}
               </h2>
               {taskConfig?.route && (
                 <Link

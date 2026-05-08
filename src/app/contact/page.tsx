@@ -4,7 +4,6 @@ import { Footer } from '@/components/shared/footer'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { getFactoryState } from '@/design/factory/get-factory-state'
 import { getProductKind } from '@/design/factory/get-product-kind'
-import { Button } from '@/components/ui/button'
 
 function getTone(kind: ReturnType<typeof getProductKind>) {
   if (kind === 'directory') {
@@ -49,9 +48,6 @@ export default function ContactPage() {
   const tone = getTone(productKind)
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'contact@mysterycoder.com'
 
-  const handleEmailClick = () => {
-    window.location.href = `mailto:${contactEmail}`
-  }
   const lanes =
     productKind === 'directory'
       ? [
@@ -108,10 +104,13 @@ export default function ContactPage() {
             </form>
             <div className="mt-6">
               <p className="text-sm font-medium text-muted-foreground mb-3">Or send us an email directly</p>
-              <Button onClick={handleEmailClick} className={`w-full justify-start ${tone.action}`}>
-                <Mail className="h-4 w-4 mr-2" />
+              <a
+                href={`mailto:${contactEmail}`}
+                className={`inline-flex w-full items-center justify-start rounded-full px-6 py-3 text-sm font-semibold ${tone.action}`}
+              >
+                <Mail className="mr-2 h-4 w-4" />
                 Email us at {contactEmail}
-              </Button>
+              </a>
             </div>
           </div>
         </section>

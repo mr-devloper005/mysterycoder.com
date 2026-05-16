@@ -23,30 +23,29 @@ const footerLinks = {
     icon: taskIcons[task.key] || LayoutGrid,
   })),
   company: [
-    { name: 'About', href: '/about' },
-    { name: 'Team', href: '/team' },
-    { name: 'Careers', href: '/careers' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Press', href: '/press' },
+    { name: 'About Us', href: '/about' },
+    { name: 'Contact Us', href: '/contact' },
+    // { name: 'Team', href: '/team' },
+    // { name: 'Careers', href: '/careers' },
+    // { name: 'Blog', href: '/blog' },
+    // { name: 'Press', href: '/press' },
   ],
   resources: [
     { name: 'Help Center', href: '/help' },
-    { name: 'Community', href: '/community' },
-    { name: 'Developers', href: '/developers' },
-    { name: 'Status', href: '/status' },
+    // { name: 'Community', href: '/community' },
+    // { name: 'Developers', href: '/developers' },
+    // { name: 'Status', href: '/status' },
   ],
   legal: [
-    { name: 'Privacy', href: '/privacy' },
-    { name: 'Terms', href: '/terms' },
     { name: 'Cookies', href: '/cookies' },
-    { name: 'Licenses', href: '/licenses' },
+    // { name: 'Licenses', href: '/licenses' },
   ],
 }
 
 const socialLinks = [
-  { name: 'Twitter', href: 'https://twitter.com', icon: Twitter },
-  { name: 'GitHub', href: 'https://github.com', icon: Github },
-  { name: 'LinkedIn', href: 'https://linkedin.com', icon: Linkedin },
+  // { name: 'Twitter', href: 'https://twitter.com', icon: Twitter },
+  // { name: 'GitHub', href: 'https://github.com', icon: Github },
+  // { name: 'LinkedIn', href: 'https://linkedin.com', icon: Linkedin },
 ]
 
 export function Footer() {
@@ -57,12 +56,9 @@ export function Footer() {
   if (recipe.homeLayout === 'article-home') {
     const year = new Date().getFullYear()
     const links = [
-      { name: 'Terms', href: '/terms' },
-      { name: 'Privacy', href: '/privacy' },
-      { name: 'Payment Policy', href: '/payment-policy' },
+      { name: 'About Us', href: '/about' },
+      { name: 'Contact Us', href: '/contact' },
       { name: 'Help', href: '/help' },
-      { name: 'Press', href: '/press' },
-      { name: 'Job', href: '/careers' },
     ]
     return (
       <footer className="bg-[#222] px-4 py-12 text-center text-[13px] font-medium text-white sm:px-6">

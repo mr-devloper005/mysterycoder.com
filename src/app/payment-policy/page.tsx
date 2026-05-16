@@ -125,7 +125,7 @@ export default function PaymentPolicyPage() {
 
         <Card className="border-border bg-card">
           <CardContent className="space-y-8 p-6 sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Last updated: April 13, 2026</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground"></p>
             {sections.map((section) => (
               <section key={section.title} className="border-t border-border pt-8 first:border-t-0 first:pt-0">
                 <h2 className="text-lg font-semibold tracking-tight text-foreground">{section.title}</h2>

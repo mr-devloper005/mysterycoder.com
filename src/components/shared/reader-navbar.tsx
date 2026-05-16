@@ -1,24 +1,15 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import {
-  ChevronDown,
-  FileText,
   Menu,
   Search,
-  User,
   X,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/lib/auth-context'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { cn } from '@/lib/utils'
@@ -37,15 +28,6 @@ export function ReaderNavbar() {
   const qFromUrl = pathname === '/search' ? (searchParams.get('q') ?? '') : ''
   const { user, logout, isAuthenticated, hasHydrated } = useAuth()
 
-  const articleTask = SITE_CONFIG.tasks.find((t) => t.key === 'article' && t.enabled)
-  const profileTask = SITE_CONFIG.tasks.find((t) => t.key === 'profile' && t.enabled)
-
-  const browseItems = useMemo(
-    () =>
-      [articleTask, profileTask].filter(Boolean) as NonNullable<typeof articleTask>[],
-    [articleTask, profileTask],
-  )
-
   return (
     <header className={cn('sticky top-0 z-50 w-full', shell)}>
       <nav className="mx-auto flex h-[72px] max-w-7xl items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
@@ -58,37 +40,6 @@ export function ReaderNavbar() {
             className="h-9 w-auto max-w-[min(200px,46vw)] object-contain object-left sm:h-10 sm:max-w-[220px]"
           />
         </Link>
-
-        <div className="hidden items-center gap-1 lg:flex">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-100">
-              Browse
-              <ChevronDown className="h-4 w-4 opacity-70" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-[200px]">
-              {browseItems.map((task) => (
-                <DropdownMenuItem key={task.key} asChild>
-                  <Link href={task.route}>{task.label}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-100">
-              Community
-              <ChevronDown className="h-4 w-4 opacity-70" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem asChild>
-                <Link href="/community">Community hub</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/help">Help</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
 
         <form
           action="/search"
@@ -104,7 +55,7 @@ export function ReaderNavbar() {
               type="search"
               name="q"
               defaultValue={qFromUrl}
-              placeholder="Search articles, profiles…"
+              placeholder="Search articles"
               autoComplete="off"
               className="h-10 w-full rounded-full border border-neutral-200 bg-neutral-50 py-2 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none ring-offset-2 transition hover:border-neutral-300 hover:bg-white focus:border-neutral-400 focus:bg-white focus:ring-2 focus:ring-neutral-200"
             />
@@ -112,31 +63,6 @@ export function ReaderNavbar() {
         </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="hidden items-center gap-1 rounded-lg px-2 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-100 lg:inline-flex">
-              Write
-              <ChevronDown className="h-4 w-4 opacity-70" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {articleTask ? (
-                <DropdownMenuItem asChild>
-                  <Link href="/create/article" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    New article
-                  </Link>
-                </DropdownMenuItem>
-              ) : null}
-              {profileTask ? (
-                <DropdownMenuItem asChild>
-                  <Link href={profileTask.route} className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Your profile
-                  </Link>
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {!hasHydrated ? (
             <div className="hidden h-9 w-[7.5rem] animate-pulse rounded-full bg-neutral-100 sm:block" aria-hidden />
           ) : isAuthenticated ? (
@@ -185,29 +111,6 @@ export function ReaderNavbar() {
                 <span className="sr-only">Submit search</span>
               </Button>
             </form>
-            {browseItems.map((task) => (
-              <Link
-                key={task.key}
-                href={task.route}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold hover:bg-neutral-50"
-                onClick={() => setOpen(false)}
-              >
-                {task.label}
-              </Link>
-            ))}
-            <Link href="/community" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold hover:bg-neutral-50" onClick={() => setOpen(false)}>
-              Community
-            </Link>
-            {articleTask ? (
-              <Link
-                href="/create/article"
-                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold hover:bg-neutral-50"
-                onClick={() => setOpen(false)}
-              >
-                <FileText className="h-4 w-4" />
-                New article
-              </Link>
-            ) : null}
             {hasHydrated && isAuthenticated && user ? (
               <div className="mt-3 border-t border-neutral-200 pt-4">
                 <p className="px-1 text-sm font-semibold text-neutral-900">{user.name}</p>

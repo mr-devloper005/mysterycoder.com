@@ -18,7 +18,7 @@ export function ReaderTopicsSearch() {
           type="search"
           name="q"
           defaultValue={qFromUrl}
-          placeholder="Search articles and profiles…"
+          placeholder="Search articles"
           autoComplete="off"
           className="h-14 w-full rounded-full border border-neutral-200 bg-white py-3 pl-12 pr-5 text-sm text-neutral-900 shadow-[0_8px_30px_rgba(0,0,0,0.08)] outline-none ring-offset-2 transition placeholder:text-neutral-500 hover:border-neutral-300 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200"
         />

@@ -43,11 +43,9 @@ export function ReaderHome({
 }) {
   const trending = articlePosts.slice(0, 12)
   const featured = articlePosts.slice(0, 8)
-  const profiles = profilePosts.slice(0, 6)
   const categories = CATEGORY_OPTIONS.slice(0, 8)
 
   const articleRoute = SITE_CONFIG.tasks.find((t) => t.key === 'article')?.route ?? '/articles'
-  const profileRoute = SITE_CONFIG.tasks.find((t) => t.key === 'profile')?.route ?? '/profile'
 
   return (
     <main className="text-[#111]">
@@ -186,18 +184,11 @@ export function ReaderHome({
           <div>
             <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">All the topics. All the voices.</h2>
             <p className="mt-4 max-w-md text-base leading-relaxed text-neutral-700">
-              Find your next read — browse by category or jump into profiles from writers you follow.
+              Find your next read — browse by category and discover fresh stories faster.
             </p>
             <Suspense fallback={<div className="mt-8 h-14 max-w-md animate-pulse rounded-full bg-black/5" aria-hidden />}>
               <ReaderTopicsSearch />
             </Suspense>
-          </div>
-          <div className="relative min-h-[280px] rounded-[2rem] bg-[linear-gradient(135deg,#e8f4ff_0%,#f5e8ff_100%)] p-8">
-            <p className="text-sm font-medium text-neutral-600">Discover</p>
-            <p className="mt-2 text-2xl font-bold">Read. Learn. Follow.</p>
-            <div className="absolute bottom-6 right-6 rounded-2xl bg-white/90 px-4 py-3 text-xs font-semibold text-neutral-600 shadow-lg backdrop-blur">
-              {primaryTask?.label ?? 'Articles'} · {supportTasks[0]?.label ?? 'Profiles'}
-            </div>
           </div>
         </div>
 
@@ -217,40 +208,6 @@ export function ReaderHome({
         </div>
       </section>
 
-      {/* Profiles */}
-      {profiles.length ? (
-        <section className="border-t border-black/[0.06] bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Creators to watch</h2>
-                <p className="mt-2 max-w-xl text-neutral-700">Profiles with perspective — follow for the next drop.</p>
-              </div>
-              <Link href={profileRoute} className="text-sm font-semibold text-[#006d6d] hover:underline">
-                View all
-              </Link>
-            </div>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {profiles.map((post) => (
-                <Link
-                  key={post.id}
-                  href={`/profile/${post.slug}`}
-                  className="group overflow-hidden rounded-2xl border border-black/[0.06] bg-[#FFFBF7] shadow-sm transition hover:shadow-md"
-                >
-                  <div className="relative h-44 bg-neutral-100">
-                    <ContentImage src={getPostImage(post)} alt={post.title} fill className="object-cover transition group-hover:scale-[1.02]" />
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold">{post.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{post.summary || 'Writer & creator on ' + SITE_CONFIG.name}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
       {/* Closing CTA */}
       <section id="get-app" className="relative scroll-mt-24 overflow-hidden bg-[#F9EBE0]">
         <div className="pointer-events-none absolute inset-0 opacity-40">
@@ -268,12 +225,6 @@ export function ReaderHome({
                 className="inline-flex items-center justify-center rounded-full bg-black px-8 py-3.5 text-sm font-semibold text-white hover:bg-neutral-900"
               >
                 Browse articles
-              </Link>
-              <Link
-                href={profileRoute}
-                className="inline-flex items-center justify-center rounded-full border border-black/20 bg-white px-8 py-3.5 text-sm font-semibold hover:bg-neutral-50"
-              >
-                Explore profiles
               </Link>
             </div>
           </div>

@@ -133,11 +133,7 @@ export const taskIntroCopy: Record<
       'Articles connect with listings, images, resources, and other content types so deeper reading can lead naturally into related discovery.',
       'Use this section to browse thoughtful posts, revisit useful writing, and move into supporting content when you want more context.',
     ],
-    links: [
-      { label: 'Explore listings', href: '/listings' },
-      { label: 'Open image sharing', href: '/image-sharing' },
-      { label: 'Browse resources', href: '/pdf' },
-    ],
+    links: [],
   },
   classified: {
     title: 'Classifieds, offers, and timely updates',

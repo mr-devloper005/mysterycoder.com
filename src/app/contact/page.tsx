@@ -49,7 +49,6 @@ export default function ContactPage() {
   const { recipe } = getFactoryState()
   const productKind = getProductKind(recipe)
   const tone = getTone(productKind)
-  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'contact@mysterycoder.com'
 
   const lanes =
     productKind === 'directory'
@@ -99,16 +98,6 @@ export default function ContactPage() {
           <div className={`rounded-[2rem] p-7 ${tone.panel}`}>
             <h2 className="text-2xl font-semibold">Send a message</h2>
             <ContactLeadForm />
-            <div className="mt-6">
-              <p className="text-sm font-medium text-muted-foreground mb-3">Or send us an email directly</p>
-              <a
-                href={`mailto:${contactEmail}`}
-                className={`inline-flex w-full items-center justify-start rounded-full px-6 py-3 text-sm font-semibold ${tone.action}`}
-              >
-                <Mail className="mr-2 h-4 w-4" />
-                Email us at {contactEmail}
-              </a>
-            </div>
           </div>
         </section>
       </main>

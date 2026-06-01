@@ -5,6 +5,8 @@ on:
     branches: [dev, main]
 
 env:
+  MAX_PUBLIC_IMAGE_KB: 5000
+  MAX_PUBLIC_ICON_KB: 5000
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:

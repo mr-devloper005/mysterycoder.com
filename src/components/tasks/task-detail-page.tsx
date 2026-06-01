@@ -7,12 +7,12 @@ import { Footer } from "@/components/shared/footer";
 import { TaskPostCard } from "@/components/shared/task-post-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { buildPostUrl, fetchTaskPostBySlug, fetchTaskPosts } from "@/lib/task-data";
+import { buildPostUrl, fetchArticleComments, fetchTaskPostBySlug, fetchTaskPosts } from "@/lib/task-data";
 import { SITE_CONFIG, getTaskConfig, type TaskKey } from "@/lib/site-config";
 import type { SitePost } from "@/lib/site-connector";
 import { TaskImageCarousel } from "@/components/tasks/task-image-carousel";
-import { cn } from "@/lib/utils";
 import { ArticleComments } from "@/components/tasks/article-comments";
+import { cn } from "@/lib/utils";
 import { SchemaJsonLd } from "@/components/seo/schema-jsonld";
 import { RichContent, formatRichHtml } from "@/components/shared/rich-content";
 import { getFactoryState } from "@/design/factory/get-factory-state";
@@ -32,6 +32,8 @@ type PostContent = {
   author?: string;
   highlights?: string[];
   logo?: string;
+  featuredImage?: string;
+  image?: string;
   images?: string[];
   latitude?: number | string;
   longitude?: number | string;
@@ -72,6 +74,12 @@ const getImageUrls = (post: SitePost, content: PostContent) => {
     : [];
   const merged = [...mediaImages, ...contentImages];
   if (merged.length) return merged;
+  const featuredImage = typeof content.featuredImage === "string" && isValidImageUrl(content.featuredImage)
+    ? content.featuredImage
+    : typeof content.image === "string" && isValidImageUrl(content.image)
+      ? content.image
+      : null;
+  if (featuredImage) return [featuredImage];
   if (isValidImageUrl(content.logo)) return [content.logo as string];
   return ["/placeholder.svg?height=900&width=1400"];
 };
@@ -124,6 +132,9 @@ const buildMapEmbedUrl = (
 
 export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: string }) {
   const taskConfig = getTaskConfig(task);
+  if (!taskConfig?.enabled) {
+    notFound();
+  }
   let post: SitePost | null = null;
   try {
     post = await fetchTaskPostBySlug(task, slug);
@@ -150,18 +161,11 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
     (typeof content.author === "string" && content.author.trim()) ||
     post.authorName ||
     "Editorial Team";
-  const articleDate = post.publishedAt
-    ? new Date(post.publishedAt).toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "";
   const postTags = Array.isArray(post.tags) ? post.tags.filter((tag) => typeof tag === "string") : [];
   const location = content.address || content.location;
   const images = getImageUrls(post, content);
   const mapEmbedUrl = buildMapEmbedUrl(content.latitude, content.longitude, location);
-  const isBookmark = task === "sbm" || task === "social";
+  const isBookmark = task === "sbm";
   const hideSidebar = isClassified || isArticle || task === "image" || isBookmark;
   const related = (await fetchTaskPosts(task, 6))
     .filter((item) => item.slug !== post.slug)
@@ -173,6 +177,7 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
     .slice(0, 3);
   const articleUrl = `${SITE_CONFIG.baseUrl.replace(/\/$/, "")}${taskConfig?.route || "/articles"}/${post.slug}`;
   const articleImage = absoluteUrl(images[0]) || absoluteUrl(SITE_CONFIG.defaultOgImage);
+  const remoteComments = isArticle ? await fetchArticleComments(post.slug, 50) : [];
   const articleSchema = isArticle
     ? {
         "@context": "https://schema.org",
@@ -222,6 +227,7 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
   const { recipe } = getFactoryState();
   const productKind = getProductKind(recipe);
   const isReaderSite = recipe.homeLayout === "article-home";
+  const useWideReaderShell = isArticle && isReaderSite;
 
   if (productKind === "directory" && (task === "listing" || task === "classified" || task === "profile")) {
     return (
@@ -256,7 +262,10 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
         <SchemaJsonLd data={schemaPayload} />
         <Link
           href={taskConfig?.route || "/"}
-          className="mb-6 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          className={cn(
+            "mb-6 inline-flex items-center text-sm text-muted-foreground hover:text-foreground",
+            useWideReaderShell ? "mx-auto flex w-full max-w-6xl" : ""
+          )}
         >
           ← Back to {taskConfig?.label || "posts"}
         </Link>
@@ -272,8 +281,8 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
               <div
                 className={
                   isReaderSite
-                    ? "mx-auto w-full max-w-4xl space-y-6 rounded-[2rem] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] sm:p-10"
-                    : "mx-auto w-full max-w-4xl space-y-6"
+                    ? "mx-auto w-full max-w-6xl space-y-7 rounded-[2rem] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] sm:p-10 lg:p-12"
+                    : "mx-auto w-full max-w-5xl space-y-6"
                 }
               >
                 <h1
@@ -286,8 +295,6 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
                   {post.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                  <span>By {articleAuthor}</span>
-                  {articleDate ? <span>{articleDate}</span> : null}
                   <Badge variant="secondary" className="inline-flex items-center gap-1">
                     <Tag className="h-3.5 w-3.5" />
                     {category}
@@ -302,9 +309,6 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
                     ))}
                   </div>
                 ) : null}
-                {articleSummary ? (
-                  <p className="text-base leading-7 text-muted-foreground">{articleSummary}</p>
-                ) : null}
                 {images[0] ? (
                   <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl border border-border bg-muted">
                     <ContentImage
@@ -318,7 +322,7 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
                   </div>
                 ) : null}
                 <RichContent html={articleHtml} className="leading-8 prose-p:my-6 prose-h2:my-8 prose-h3:my-6 prose-ul:my-6" />
-                <ArticleComments slug={post.slug} />
+                <ArticleComments articleTitle={post.title} articleSlug={post.slug} remoteComments={remoteComments} />
               </div>
             ) : null}
 
@@ -489,7 +493,7 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
           ) : null}
         </div>
 
-        <section className="mt-12">
+        <section className={cn("mt-12", useWideReaderShell ? "mx-auto w-full max-w-6xl" : "")}>
           {related.length ? (
             <>
             <div className="mb-4 flex items-center justify-between">
@@ -505,7 +509,12 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
                 </Link>
               )}
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              className={cn(
+                "grid gap-6 sm:grid-cols-2 lg:grid-cols-3",
+                useWideReaderShell ? "[&>*:only-child]:justify-self-center [&>*:only-child]:sm:w-[min(100%,28rem)]" : ""
+              )}
+            >
               {related.map((item) => (
                 <TaskPostCard
                   key={item.id}

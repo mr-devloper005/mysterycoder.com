@@ -14,11 +14,11 @@ export const siteContent = {
       'Explore fresh articles, image-led posts, and discoverable content across the platform through a calmer and clearer browsing experience.',
     primaryCta: {
       label: 'Read latest stories',
-      href: '/articles',
+      href: '/article',
     },
     secondaryCta: {
       label: 'Explore visuals',
-      href: '/image-sharing',
+      href: '/image',
     },
     searchPlaceholder: 'Search stories, visuals, listings, and more',
     focusLabel: 'Focus',
@@ -53,11 +53,11 @@ export const siteContent = {
     ],
     primaryLink: {
       label: 'Browse articles',
-      href: '/articles',
+      href: '/article',
     },
     secondaryLink: {
       label: 'See visuals',
-      href: '/image-sharing',
+      href: '/image',
     },
   },
   cta: {
@@ -66,8 +66,8 @@ export const siteContent = {
     description:
       'Move between articles, image-led posts, listings, and resources through one clearer and more connected visual system.',
     primaryCta: {
-      label: 'Get Started Free',
-      href: '/register',
+      label: 'Browse Articles',
+      href: '/article',
     },
     secondaryCta: {
       label: 'Contact Sales',
@@ -78,7 +78,7 @@ export const siteContent = {
   taskSectionDescriptionSuffix: 'Browse the newest posts in this section.',
 } as const
 
-export const taskPageMetadata: Record<Exclude<TaskKey, 'comment' | 'org' | 'social'>, { title: string; description: string }> = {
+export const taskPageMetadata: Record<TaskKey, { title: string; description: string }> = {
   article: {
     title: 'Articles and stories',
     description: 'Read articles, stories, guides, and long-form posts across topics and interests.',
@@ -121,8 +121,8 @@ export const taskIntroCopy: Record<
       'Browse by category to compare posts in context, discover related content, and move between formats without losing your place.',
     ],
     links: [
-      { label: 'Read articles', href: '/articles' },
-      { label: 'Explore classifieds', href: '/classifieds' },
+      { label: 'Read articles', href: '/article' },
+      { label: 'Explore classifieds', href: '/classified' },
       { label: 'View profiles', href: '/profile' },
     ],
   },
@@ -143,8 +143,8 @@ export const taskIntroCopy: Record<
       'Browse by category to find announcements quickly, then continue into related sections when you need more detail.',
     ],
     links: [
-      { label: 'Business listings', href: '/listings' },
-      { label: 'Read articles', href: '/articles' },
+      { label: 'Business listings', href: '/listing' },
+      { label: 'Read articles', href: '/article' },
       { label: 'View profiles', href: '/profile' },
     ],
   },
@@ -156,9 +156,9 @@ export const taskIntroCopy: Record<
       'Browse the latest visual updates, then continue into related stories or supporting pages for more context.',
     ],
     links: [
-      { label: 'Read articles', href: '/articles' },
-      { label: 'Explore listings', href: '/listings' },
-      { label: 'Open classifieds', href: '/classifieds' },
+      { label: 'Read articles', href: '/article' },
+      { label: 'Explore listings', href: '/listing' },
+      { label: 'Open classifieds', href: '/classified' },
     ],
   },
   profile: {
@@ -169,9 +169,9 @@ export const taskIntroCopy: Record<
       'Browse profiles to understand people and brands more clearly, then continue into related content from the same source.',
     ],
     links: [
-      { label: 'Open listings', href: '/listings' },
-      { label: 'Read articles', href: '/articles' },
-      { label: 'Browse image sharing', href: '/image-sharing' },
+      { label: 'Open listings', href: '/listing' },
+      { label: 'Read articles', href: '/article' },
+      { label: 'Browse image sharing', href: '/image' },
     ],
   },
   sbm: {
@@ -182,8 +182,8 @@ export const taskIntroCopy: Record<
       'Use this section to organize helpful sources and discover connected content without leaving the broader site experience.',
     ],
     links: [
-      { label: 'Browse articles', href: '/articles' },
-      { label: 'Explore listings', href: '/listings' },
+      { label: 'Browse articles', href: '/article' },
+      { label: 'Explore listings', href: '/listing' },
       { label: 'Open PDFs', href: '/pdf' },
     ],
   },
@@ -195,48 +195,9 @@ export const taskIntroCopy: Record<
       'Browse by category to find relevant files quickly, then continue into related sections when you want more context.',
     ],
     links: [
-      { label: 'Read articles', href: '/articles' },
-      { label: 'See listings', href: '/listings' },
+      { label: 'Read articles', href: '/article' },
+      { label: 'See listings', href: '/listing' },
       { label: 'Explore profiles', href: '/profile' },
-    ],
-  },
-  social: {
-    title: 'Short updates and community signals',
-    paragraphs: [
-      'Short updates add quick signals that keep activity flowing across the platform.',
-      'They work well with stories, listings, and resources by helping visitors move from brief updates into deeper content.',
-      'Use these posts as lightweight entry points into the broader site experience.',
-    ],
-    links: [
-      { label: 'Open listings', href: '/listings' },
-      { label: 'Read articles', href: '/articles' },
-      { label: 'View PDFs', href: '/pdf' },
-    ],
-  },
-  comment: {
-    title: 'Comments and contextual responses',
-    paragraphs: [
-      'Comments surface responses connected directly to articles and help keep discussion close to the writing it belongs to.',
-      'This layer adds perspective and reaction without needing a separate standalone content format.',
-      'Use comments as supporting context beneath stories, then continue exploring related content from the same topic area.',
-    ],
-    links: [
-      { label: 'Explore articles', href: '/articles' },
-      { label: 'View listings', href: '/listings' },
-      { label: 'See classifieds', href: '/classifieds' },
-    ],
-  },
-  org: {
-    title: 'Organizations, teams, and structured entities',
-    paragraphs: [
-      'Organization pages provide structured identity surfaces for teams, brands, communities, and agencies.',
-      'Used with listings, stories, profiles, and resources, they help create stronger structure across the platform.',
-      'Connect organization pages with related content to build a clearer and more unified site presence.',
-    ],
-    links: [
-      { label: 'Business listings', href: '/listings' },
-      { label: 'Read articles', href: '/articles' },
-      { label: 'PDF library', href: '/pdf' },
     ],
   },
 }

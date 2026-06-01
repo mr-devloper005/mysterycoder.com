@@ -7,11 +7,8 @@ const taskSeeds: Record<TaskKey, string> = {
   article: "article",
   image: "image",
   profile: "profile",
-  social: "social",
   pdf: "pdf",
-  org: "org",
   sbm: "sbm",
-  comment: "comment",
 };
 
 const taskTitles: Record<TaskKey, string[]> = {
@@ -50,13 +47,6 @@ const taskTitles: Record<TaskKey, string[]> = {
     "Team Northwind",
     "Maya Desai",
   ],
-  social: [
-    "Community Launch Update",
-    "Collab Request: Designers",
-    "Weekly Trend Digest",
-    "New Partnerships Announced",
-    "Creator Spotlight Series",
-  ],
   pdf: [
     "Local SEO Playbook",
     "Marketplace UX Guide",
@@ -64,26 +54,12 @@ const taskTitles: Record<TaskKey, string[]> = {
     "Agency Pricing Deck",
     "SaaS Metrics Cheatsheet",
   ],
-  org: [
-    "Northwind Collective",
-    "Brightline Media",
-    "Atlas Labs",
-    "Cobalt Studio",
-    "Zenith Partners",
-  ],
   sbm: [
     "SEO Checklist 2026",
     "Directory Growth Tactics",
     "Backlink Outreach Vault",
     "AI Writing Tools List",
     "Local Listing Audit",
-  ],
-  comment: [
-    "Reply: Agency Growth Stack",
-    "Commentary: Link Building",
-    "Response: Listing Quality",
-    "Thread: SEO Experiments",
-    "Hot Take: Directory UX",
   ],
 };
 
@@ -93,11 +69,8 @@ const taskCategories: Record<TaskKey, string[]> = {
   article: ["Strategy", "SEO", "Product", "Growth", "Ops"],
   image: ["Lifestyle", "Travel", "Studio", "Urban", "Minimal"],
   profile: ["Founder", "Creator", "Agency", "Team", "Consultant"],
-  social: ["Community", "News", "Updates", "Events", "Insights"],
   pdf: ["Guides", "Playbooks", "Templates", "Reports", "Docs"],
-  org: ["Agency", "Studio", "Collective", "Partner", "Network"],
   sbm: ["Bookmarks", "Tools", "Resources", "SEO", "Research"],
-  comment: ["Opinion", "Reply", "Discussion", "Feedback", "Debate"],
 };
 
 const summaryByTask: Record<TaskKey, string> = {
@@ -106,11 +79,8 @@ const summaryByTask: Record<TaskKey, string> = {
   article: "Long-form insight from industry experts.",
   image: "Curated visual story and gallery.",
   profile: "Featured creator profile and highlights.",
-  social: "Community update and engagement thread.",
   pdf: "Downloadable resource for your team.",
-  org: "Organization spotlight and services.",
   sbm: "Curated bookmark collection entry.",
-  comment: "Response post with perspective and context.",
 };
 
 const randomFrom = (items: string[], index: number) =>

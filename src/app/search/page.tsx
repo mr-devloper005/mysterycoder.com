@@ -42,7 +42,7 @@ export default async function SearchPage({
       ? feed.posts
       : useMaster
         ? []
-        : SITE_CONFIG.tasks.flatMap((task) => getMockPostsForTask(task.key));
+        : SITE_CONFIG.tasks.filter((task) => task.enabled).flatMap((task) => getMockPostsForTask(task.key));
 
   const filtered = posts.filter((post) => {
     const content = post.content && typeof post.content === "object" ? post.content : {};

@@ -1,86 +1,39 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import useEmblaCarousel from "embla-carousel-react";
-import { ContentImage } from "@/components/shared/content-image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ContentImage } from '@/components/shared/content-image'
 
 export function TaskImageCarousel({ images }: { images: string[] }) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: "start",
-    loop: images.length > 1,
-  });
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => {
-      setCanPrev(emblaApi.canScrollPrev());
-      setCanNext(emblaApi.canScrollNext());
-    };
-    onSelect();
-    emblaApi.on("select", onSelect);
-    return () => {
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi]);
-
-  if (!images.length) return null;
+  const safeImages = images.length ? images : ['/placeholder.svg?height=900&width=1400']
+  const [featured, ...rest] = safeImages
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-muted">
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex">
-          {images.map((src, index) => (
-            <div key={`${src}-${index}`} className="min-w-0 flex-[0_0_100%]">
-              <div className="relative aspect-[16/10] w-full">
-                <ContentImage
-                  src={src}
-                  alt={`Gallery image ${index + 1} for verified business listing`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 900px"
-                  quality={78}
-                  className="object-cover"
-                  intrinsicWidth={1440}
-                  intrinsicHeight={900}
-                  priority={index === 0}
-                />
-              </div>
+    <div className="space-y-3">
+      <div className="relative aspect-[16/10] overflow-hidden rounded-3xl border border-border bg-muted">
+        <ContentImage
+          src={featured}
+          alt="Post featured image"
+          fill
+          sizes="(max-width: 768px) 94vw, 900px"
+          className="object-cover"
+          intrinsicWidth={1400}
+          intrinsicHeight={900}
+        />
+      </div>
+      {rest.length ? (
+        <div className="grid grid-cols-3 gap-3">
+          {rest.slice(0, 3).map((image, index) => (
+            <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-muted">
+              <ContentImage
+                src={image}
+                alt={`Post image ${index + 2}`}
+                fill
+                sizes="180px"
+                className="object-cover"
+                intrinsicWidth={640}
+                intrinsicHeight={480}
+              />
             </div>
           ))}
         </div>
-      </div>
-
-      {images.length > 1 && (
-        <>
-          <Button
-            variant="secondary"
-            size="icon"
-            aria-label="Previous image"
-            className="absolute left-4 top-1/2 -translate-y-1/2"
-            onClick={() => emblaApi?.scrollPrev()}
-            disabled={!canPrev}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            aria-label="Next image"
-            className="absolute right-4 top-1/2 -translate-y-1/2"
-            onClick={() => emblaApi?.scrollNext()}
-            disabled={!canNext}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </>
-      )}
+      ) : null}
     </div>
-  );
+  )
 }
-
-
-
-

@@ -1,369 +1,170 @@
-"use client";
+'use client'
 
-import { useEffect, useMemo, useState } from "react";
-import { MessageSquare, Trash2 } from "lucide-react";
-import type { SitePost } from "@/lib/site-connector";
-import { RichContent, formatRichHtml } from "@/components/shared/rich-content";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { loadFromStorage, saveToStorage, storageKeys } from "@/lib/local-storage";
-import type { User } from "@/types";
+import { useEffect, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_MASTER_PANEL_URL ||
-  process.env.NEXT_PUBLIC_MASTER_API_URL;
-const SITE_CODE = process.env.NEXT_PUBLIC_SITE_CODE;
-const LOCAL_COMMENT_VERSION = "v2";
-const DAILY_COMMENT_LIMIT = 10;
+type ArticleCommentsProps = {
+  articleTitle: string
+  articleSlug: string
+  remoteComments?: LocalComment[]
+}
 
 type LocalComment = {
-  id: string;
-  slug: string;
-  articleSlug: string;
-  authorName: string;
-  body: string;
-  createdAt: string;
-  source: "local";
-};
+  id: string
+  name: string
+  email?: string
+  comment: string
+  createdAt: string
+  articleTitle?: string
+  articleSlug?: string
+}
 
-type DisplayComment = {
-  id: string;
-  slug: string;
-  authorName: string;
-  body: string;
-  createdAt: string;
-  source: "local" | "remote";
-};
+const COMMENTS_PER_PAGE = 5
+const buildStorageKey = (slug: string) => `slot4:article-comments:${slug}`
 
-const buildPublicUrl = (path: string) => {
-  if (!API_BASE || !SITE_CODE) return null;
-  return `${API_BASE.replace(/\/$/, "")}/api/v1/public/${SITE_CODE}${path}`;
-};
+const formatDate = (value: string) => {
+  try {
+    return new Intl.DateTimeFormat('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value))
+  } catch {
+    return 'Just now'
+  }
+}
 
-const getContent = (post: SitePost) =>
-  post.content && typeof post.content === "object" ? (post.content as Record<string, any>) : {};
-
-const commentStorageKey = (slug: string) => `nexus-article-comments:${LOCAL_COMMENT_VERSION}:${slug}`;
-
-const startOfToday = () => {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date.getTime();
-};
-
-const nextResetTime = () => {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  date.setHours(0, 0, 0, 0);
-  return date;
-};
-
-const getLocalAuthorName = () => {
-  const savedUser = loadFromStorage<User | null>(storageKeys.user, null);
-  return savedUser?.name?.trim() || "User";
-};
-
-const toDisplayComment = (comment: SitePost): DisplayComment => {
-  const content = getContent(comment);
-  return {
-    id: comment.id,
-    slug: comment.slug,
-    authorName: comment.authorName || "Anonymous",
-    body:
-      (typeof content.description === "string" && content.description) ||
-      comment.summary ||
-      "Comment added.",
-    createdAt: comment.publishedAt || comment.createdAt || new Date().toISOString(),
-    source: "remote",
-  };
-};
-
-const sortComments = (comments: DisplayComment[]) =>
-  [...comments].sort((a, b) => {
-    if (a.source !== b.source) {
-      return a.source === "local" ? -1 : 1;
-    }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-
-export function ArticleComments({ slug }: { slug: string }) {
-  const [remoteComments, setRemoteComments] = useState<DisplayComment[]>([]);
-  const [localComments, setLocalComments] = useState<LocalComment[]>([]);
-  const [page, setPage] = useState(1);
-  const [highlightId, setHighlightId] = useState<string | null>(null);
-  const [commentBody, setCommentBody] = useState("");
-  const [formError, setFormError] = useState<string | null>(null);
-  const pageSize = 10;
+export function ArticleComments({ articleTitle, articleSlug, remoteComments = [] }: ArticleCommentsProps) {
+  const storageKey = useMemo(() => buildStorageKey(articleSlug), [articleSlug])
+  const [comments, setComments] = useState<LocalComment[]>([])
+  const [page, setPage] = useState(1)
+  const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle')
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
-    const saved = loadFromStorage<LocalComment[]>(commentStorageKey(slug), []);
-    setLocalComments(Array.isArray(saved) ? saved : []);
-  }, [slug]);
+    try {
+      const saved = window.localStorage.getItem(storageKey)
+      if (!saved) return
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) setComments(parsed)
+    } catch {
+      setComments([])
+    }
+  }, [storageKey])
 
-  useEffect(() => {
-    const load = async () => {
-      const target = buildPublicUrl("/feed?limit=200");
-      if (!target) {
-        setRemoteComments([]);
-        return;
-      }
+  const combinedComments = useMemo(() => {
+    const remote = remoteComments.map((item) => ({ ...item, id: `remote-${item.id}` }))
+    return [...comments, ...remote].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [comments, remoteComments])
+  const totalPages = Math.max(1, Math.ceil(combinedComments.length / COMMENTS_PER_PAGE))
+  const currentPage = Math.min(page, totalPages)
+  const visibleComments = combinedComments.slice((currentPage - 1) * COMMENTS_PER_PAGE, currentPage * COMMENTS_PER_PAGE)
 
-      try {
-        const response = await fetch(target, { cache: "no-store" });
-        if (!response.ok) {
-          setRemoteComments([]);
-          return;
-        }
-        const json = (await response.json()) as { data?: { posts?: SitePost[] } };
-        const posts = json.data?.posts || [];
-        const filtered = posts.filter((post) => {
-          const content = getContent(post);
-          return (
-            content.type === "comment" &&
-            (content.articleSlug === slug ||
-              (typeof content.parentUrl === "string" && content.parentUrl.includes(`/${slug}`)))
-          );
-        });
+  function persist(nextComments: LocalComment[]) {
+    window.localStorage.setItem(storageKey, JSON.stringify(nextComments))
+  }
 
-        setRemoteComments(filtered.map(toDisplayComment));
-      } catch {
-        setRemoteComments([]);
-      }
-    };
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    const name = String(form.get('name') || '').trim()
+    const email = String(form.get('email') || '').trim()
+    const comment = String(form.get('comment') || '').trim()
 
-    load();
-  }, [slug]);
-
-  const mergedComments = useMemo(
-    () =>
-      sortComments([
-        ...localComments.map((comment) => ({
-          id: comment.id,
-          slug: comment.slug,
-          authorName: comment.authorName,
-          body: comment.body,
-          createdAt: comment.createdAt,
-          source: "local" as const,
-        })),
-        ...remoteComments,
-      ]),
-    [localComments, remoteComments]
-  );
-
-  const commentsToday = useMemo(() => {
-    const todayStart = startOfToday();
-    return localComments.filter((comment) => new Date(comment.createdAt).getTime() >= todayStart).length;
-  }, [localComments]);
-
-  const remainingToday = Math.max(DAILY_COMMENT_LIMIT - commentsToday, 0);
-  const limitReached = remainingToday <= 0;
-  const resetLabel = nextResetTime().toLocaleString("en-IN", {
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.startsWith("#comment-")) {
-      const targetKey = hash.replace("#comment-", "");
-      const match = mergedComments.find(
-        (item) => item.id === targetKey || item.slug === targetKey
-      );
-      setHighlightId(match?.id || null);
-      return;
+    if (!name || comment.length < 10) {
+      setStatus('error')
+      setMessage('Please add your name and a comment of at least 10 characters.')
+      return
     }
 
-    if (hash === "#comment" && mergedComments.length) {
-      setHighlightId(mergedComments[0].id);
-      return;
-    }
-
-    setHighlightId(null);
-  }, [mergedComments]);
-
-  useEffect(() => {
-    if (!highlightId) return;
-    const target = document.getElementById(`comment-${highlightId}`);
-    if (target) {
-      setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
-    }
-  }, [highlightId]);
-
-  const totalPages = Math.max(Math.ceil(mergedComments.length / pageSize), 1);
-  const safePage = Math.min(Math.max(page, 1), totalPages);
-  const visibleComments = useMemo(() => {
-    const start = (safePage - 1) * pageSize;
-    return mergedComments.slice(start, start + pageSize);
-  }, [mergedComments, safePage]);
-
-  const persistLocalComments = (nextComments: LocalComment[]) => {
-    setLocalComments(nextComments);
-    saveToStorage(commentStorageKey(slug), nextComments);
-  };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const cleanBody = commentBody.trim();
-
-    if (!cleanBody) {
-      setFormError("Please write a comment before publishing.");
-      return;
-    }
-
-    if (limitReached) {
-      setFormError("You have reached the 10 comments per day limit on this device.");
-      return;
-    }
-
-    const nextComment: LocalComment = {
-      id: `local-${slug}-${Date.now()}`,
-      slug: `local-comment-${Date.now()}`,
-      articleSlug: slug,
-      authorName: getLocalAuthorName(),
-      body: cleanBody,
+    const newComment: LocalComment = {
+      id: `local-${Date.now()}`,
+      name,
+      email: email || undefined,
+      comment,
       createdAt: new Date().toISOString(),
-      source: "local",
-    };
-
-    persistLocalComments([nextComment, ...localComments]);
-    setCommentBody("");
-    setFormError(null);
-    setHighlightId(nextComment.id);
-    setPage(1);
-  };
-
-  const handleDeleteLocalComment = (commentId: string) => {
-    const nextComments = localComments.filter((comment) => comment.id !== commentId);
-    persistLocalComments(nextComments);
-    if (highlightId === commentId) {
-      setHighlightId(null);
+      articleTitle,
+      articleSlug,
     }
-    setFormError(null);
-  };
+
+    const nextComments = [newComment, ...comments]
+    setComments(nextComments)
+    persist(nextComments)
+    setPage(1)
+    event.currentTarget.reset()
+    setStatus('saved')
+    setMessage('Comment added.')
+  }
 
   return (
-    <section className="mt-12" id="comments">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <MessageSquare className="h-4 w-4" />
-        Comments
+    <section className="mt-10 rounded-[1.5rem] border border-border bg-card/80 p-6 shadow-sm">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Discussion</p>
+          <h2 className="mt-2 text-2xl font-semibold text-foreground">Comments</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">{combinedComments.length} comment{combinedComments.length === 1 ? '' : 's'}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <div className="space-y-2">
-          <label htmlFor="comment-body" className="text-sm font-medium text-foreground">
-            Add a comment
-          </label>
-          <Textarea
-            id="comment-body"
-            value={commentBody}
-            onChange={(event) => setCommentBody(event.target.value)}
-            placeholder="Write your comment here"
-            className="min-h-28"
-            maxLength={2000}
-            disabled={limitReached}
-          />
-        </div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                limitReached
-                  ? "bg-destructive/10 text-destructive"
-                  : remainingToday <= 3
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-primary/10 text-primary"
-              }`}
-            >
-              {limitReached
-                ? `Daily limit reached: ${DAILY_COMMENT_LIMIT}/${DAILY_COMMENT_LIMIT}`
-                : `${remainingToday} of ${DAILY_COMMENT_LIMIT} comments left today`}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {limitReached
-                ? `You can publish again after ${resetLabel}.`
-                : `Limit resets after ${resetLabel}.`}
-            </p>
-          </div>
-          <Button type="submit" disabled={limitReached}>
-            Publish Comment
-          </Button>
-        </div>
-        {formError ? <p className="mt-3 text-sm text-destructive">{formError}</p> : null}
-      </form>
-
-      {mergedComments.length ? (
+      {combinedComments.length ? (
         <div className="mt-6 space-y-4">
-          {visibleComments.map((comment) => {
-            const isHighlighted = highlightId === comment.id;
-            return (
-              <div
-                key={comment.id}
-                id={`comment-${comment.id}`}
-                className={`rounded-2xl border p-4 ${
-                  isHighlighted ? "border-primary/50 bg-primary/5" : "border-border bg-white"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{comment.authorName}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(comment.createdAt).toLocaleDateString()}
-                    </p>
-                    {comment.source === "local" ? (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteLocalComment(comment.id)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
-                        aria-label="Delete local comment"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-                <RichContent
-                  html={formatRichHtml(comment.body, "Comment added.")}
-                  className="mt-2 text-sm text-muted-foreground prose-sm prose-h2:text-xl prose-h3:text-lg"
-                />
+          {visibleComments.map((item) => (
+            <article key={item.id} className="rounded-2xl border border-border bg-background/70 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold text-foreground">{item.name}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(item.createdAt)}</p>
               </div>
-            );
-          })}
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">{item.comment}</p>
+            </article>
+          ))}
         </div>
       ) : (
-        <div className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No comments yet.
+        <div className="mt-6 rounded-2xl border border-dashed border-border bg-background/60 p-5 text-sm text-muted-foreground">
+          No comments yet. Be the first to add a comment.
         </div>
       )}
 
-      {totalPages > 1 ? (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
+      {combinedComments.length > COMMENTS_PER_PAGE ? (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
           <span>
-            Page {safePage} of {totalPages}
+            Page {currentPage} of {totalPages}
           </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={safePage === 1}
-              className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-            >
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
               Previous
-            </button>
-            <button
-              type="button"
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={safePage === totalPages}
-              className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-            >
+            </Button>
+            <Button type="button" variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
               Next
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
+
+      <form onSubmit={handleSubmit} className="mt-6 grid gap-4 rounded-2xl border border-border bg-background/60 p-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input name="name" placeholder="Your name" autoComplete="name" required />
+          <Input name="email" type="email" placeholder="Email address (optional)" autoComplete="email" />
+        </div>
+        <textarea
+          name="comment"
+          placeholder="Write your comment..."
+          required
+          minLength={10}
+          rows={4}
+          className="min-h-28 w-full rounded-md border border-input bg-transparent px-3 py-3 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button type="submit">Add comment</Button>
+          {message ? (
+            <p className={status === 'error' ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}>
+              {message}
+            </p>
+          ) : null}
+        </div>
+      </form>
     </section>
-  );
+  )
 }

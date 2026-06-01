@@ -33,16 +33,19 @@ function getPostImage(post?: SitePost | null) {
 export function ReaderHome({
   articlePosts,
   profilePosts,
-  primaryTask,
-  supportTasks,
 }: {
   articlePosts: SitePost[]
   profilePosts: SitePost[]
   primaryTask?: TaskConfig
   supportTasks: TaskConfig[]
 }) {
-  const trending = articlePosts.slice(0, 12)
-  const featured = articlePosts.slice(0, 8)
+  const uniqueArticles = Array.from(
+    new Map(articlePosts.map((post) => [post.slug || post.id || post.title, post])).values()
+  )
+  const trending = uniqueArticles.slice(0, 12)
+  const featured = uniqueArticles.slice(12, 20)
+  const pathways = uniqueArticles.slice(20, 26)
+  const community = profilePosts.length ? profilePosts.slice(0, 4) : uniqueArticles.slice(26, 30)
   const categories = CATEGORY_OPTIONS.slice(0, 8)
 
   const articleRoute = SITE_CONFIG.tasks.find((t) => t.key === 'article')?.route ?? '/articles'
@@ -86,7 +89,7 @@ export function ReaderHome({
 
             <div className="absolute left-0 top-[6%] z-10 max-w-[260px] rounded-2xl border border-black/5 bg-white p-4 shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
               <div className="flex items-start gap-3">
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-200" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF6600] text-sm font-extrabold text-white shadow-inner">M</div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-[#FF6600]">reader_mina</p>
                   <p className="mt-1 text-sm leading-snug text-neutral-800">
@@ -102,7 +105,7 @@ export function ReaderHome({
 
             <div className="absolute bottom-[8%] right-0 z-10 max-w-[260px] rounded-2xl border border-black/5 bg-white p-4 shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
               <div className="flex items-start gap-3">
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-200" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#111] text-sm font-extrabold text-white shadow-inner">D</div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-[#FF6600]">dev_notes</p>
                   <p className="mt-1 text-sm leading-snug text-neutral-800">What in the feed?! (i love it)</p>
@@ -178,6 +181,75 @@ export function ReaderHome({
         </div>
       </section>
 
+
+      {/* Reading pathways */}
+      <section className="bg-[#FFF9F2]">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+            <div className="rounded-[2rem] border border-[#e8d8c9] bg-white p-7 shadow-[0_18px_50px_rgba(47,29,22,0.06)] lg:sticky lg:top-28">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#b76e45]">Reading pathways</p>
+              <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-[#111]">Choose a lane and keep exploring.</h2>
+              <p className="mt-4 text-sm leading-8 text-neutral-700">
+                A richer homepage needs different rhythms: quick reads, deeper explainers, and posts that feel worth opening next.
+              </p>
+              <Link href={articleRoute} className="mt-6 inline-flex rounded-full bg-[#2f1d16] px-6 py-3 text-sm font-bold text-[#fff4e4] hover:bg-[#452920]">
+                Browse the archive
+              </Link>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              {pathways.slice(0, 4).map((post, index) => (
+                <Link
+                  key={post.id}
+                  href={`/articles/${post.slug}`}
+                  className={index === 0 ? 'group overflow-hidden rounded-[2rem] border border-[#e8d8c9] bg-[#2f1d16] text-white shadow-[0_24px_70px_rgba(47,29,22,0.18)] md:col-span-2' : 'group overflow-hidden rounded-[2rem] border border-[#e8d8c9] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_48px_rgba(47,29,22,0.10)]'}
+                >
+                  <div className={index === 0 ? 'grid gap-0 md:grid-cols-[1fr_0.9fr]' : ''}>
+                    <div className={index === 0 ? 'relative min-h-[300px]' : 'relative h-52'}>
+                      <ContentImage src={getPostImage(post)} alt={post.title} fill className="object-cover transition duration-500 group-hover:scale-105" />
+                      {index === 0 ? <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,rgba(47,29,22,0.36))]" /> : null}
+                    </div>
+                    <div className={index === 0 ? 'p-7 md:flex md:flex-col md:justify-center' : 'p-5'}>
+                      <p className={index === 0 ? 'text-xs font-bold uppercase tracking-[0.24em] text-[#e2c884]' : 'text-xs font-bold uppercase tracking-[0.24em] text-[#b76e45]'}>
+                        Path {String(index + 1).padStart(2, '0')}
+                      </p>
+                      <h3 className={index === 0 ? 'mt-3 text-3xl font-extrabold tracking-tight' : 'mt-3 line-clamp-3 text-xl font-bold tracking-tight text-[#111]'}>{post.title}</h3>
+                      <p className={index === 0 ? 'mt-4 line-clamp-4 text-sm leading-8 text-white/75' : 'mt-3 line-clamp-3 text-sm leading-7 text-neutral-700'}>{post.summary || 'Open this story to continue browsing the site archive.'}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Community / profiles */}
+      <section className="bg-[#F6F6F6]">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#006d6d]">People behind the feed</p>
+              <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-[#111]">Profiles, voices, and useful corners.</h2>
+            </div>
+            <Link href="/profile" className="text-sm font-bold text-[#006d6d] hover:underline">Explore profiles</Link>
+          </div>
+
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {community.map((post, index) => (
+              <Link key={post.id} href={profilePosts.length ? `/profile/${post.slug}` : `/articles/${post.slug}`} className="group rounded-[2rem] border border-black/[0.06] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_48px_rgba(0,0,0,0.10)]">
+                <div className="relative h-44 overflow-hidden rounded-[1.4rem] bg-neutral-100">
+                  <ContentImage src={getPostImage(post)} alt={post.title} fill className="object-cover transition duration-500 group-hover:scale-105" />
+                </div>
+                <p className="mt-5 text-xs font-bold uppercase tracking-[0.22em] text-neutral-500">Spotlight {index + 1}</p>
+                <h3 className="mt-2 line-clamp-3 text-xl font-extrabold tracking-tight text-[#111]">{post.title}</h3>
+                <p className="mt-3 line-clamp-3 text-sm leading-7 text-neutral-700">{post.summary || 'A profile or useful post from this site surface.'}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Topics + search vibe */}
       <section className={`${pageGray}`}>
         <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:px-8">
@@ -213,7 +285,7 @@ export function ReaderHome({
         <div className="pointer-events-none absolute inset-0 opacity-40">
           <div className="absolute left-[10%] top-[20%] h-64 w-64 rounded-full bg-[#F4D7C1] blur-3xl" />
         </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 pt-16 pb-10 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Where articles meet audience</h2>
             <p className="mt-4 text-lg text-neutral-800">

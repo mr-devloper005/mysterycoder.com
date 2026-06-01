@@ -1,3 +1,5 @@
+import { slot4TaskSupport } from '@/editable/content/tasks.config'
+
 export const siteTaskDefinitions = [
   {
     key: 'listing',
@@ -5,23 +7,23 @@ export const siteTaskDefinitions = [
     route: '/listing',
     description: 'Verified businesses and services.',
     contentType: 'listing',
-    enabled: false,
+    enabled: slot4TaskSupport.listing,
   },
   {
     key: 'classified',
     label: 'Classified',
     route: '/classified',
-    description: 'Local offers, jobs, and deals.',
+    description: 'Local offers, announcements, jobs, and deals.',
     contentType: 'classified',
-    enabled: false,
+    enabled: slot4TaskSupport.classified,
   },
   {
     key: 'article',
     label: 'Article',
     route: '/article',
-    description: 'Insights, blogs, and long-form content.',
+    description: 'Insights, guides, blogs, and long-form content.',
     contentType: 'article',
-    enabled: true,
+    enabled: slot4TaskSupport.article,
   },
   {
     key: 'image',
@@ -29,15 +31,15 @@ export const siteTaskDefinitions = [
     route: '/image',
     description: 'Galleries and media-first posts.',
     contentType: 'image',
-    enabled: false,
+    enabled: slot4TaskSupport.image,
   },
   {
     key: 'profile',
     label: 'Profile',
     route: '/profile',
-    description: 'Creator and business profiles.',
+    description: 'Creator, author, and business profiles.',
     contentType: 'profile',
-    enabled: true,
+    enabled: slot4TaskSupport.profile,
   },
   {
     key: 'sbm',
@@ -45,15 +47,7 @@ export const siteTaskDefinitions = [
     route: '/sbm',
     description: 'Curated bookmarks and resources.',
     contentType: 'sbm',
-    enabled: false,
-  },
-  {
-    key: 'comment',
-    label: 'Comment',
-    route: '/blog',
-    description: 'Commentary and response posts.',
-    contentType: 'comment',
-    enabled: false,
+    enabled: slot4TaskSupport.sbm,
   },
   {
     key: 'pdf',
@@ -61,15 +55,7 @@ export const siteTaskDefinitions = [
     route: '/pdf',
     description: 'PDF resources and downloads.',
     contentType: 'pdf',
-    enabled: false,
-  },
-  {
-    key: 'org',
-    label: 'Organization',
-    route: '/team',
-    description: 'Organization profiles and directories.',
-    contentType: 'org',
-    enabled: false,
+    enabled: slot4TaskSupport.pdf,
   },
 ] as const
 
@@ -79,9 +65,6 @@ export const siteTaskViews = {
   article: '/article',
   image: '/image',
   profile: '/profile',
-  social: '/community',
   sbm: '/sbm',
-  comment: '/blog',
   pdf: '/pdf',
-  org: '/team',
 } as const

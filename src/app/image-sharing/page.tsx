@@ -1,16 +1,8 @@
-import { TaskListPage } from "@/components/tasks/task-list-page";
-import { buildTaskMetadata } from "@/lib/seo";
-import { taskPageMetadata } from "@/config/site.content";
+export { generateMetadata } from '@/editable/pages/ImagesPage'
+import { ImagesTaskPage } from '@/editable/pages/ImagesPage'
 
-export const revalidate = 3;
-
-export const generateMetadata = () =>
-  buildTaskMetadata("image", {
-    path: "/image-sharing",
-    title: taskPageMetadata.image.title,
-    description: taskPageMetadata.image.description,
-  });
-
-export default function ImageSharingPage({ searchParams }: { searchParams?: { category?: string } }) {
-  return <TaskListPage task="image" category={searchParams?.category} />;
+export default function ImageSharingPage(props: { searchParams?: Promise<{ category?: string; page?: string }> }) {
+  return <ImagesTaskPage {...props} basePath="/image-sharing" />
 }
+
+export const revalidate = 3

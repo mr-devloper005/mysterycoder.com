@@ -2,33 +2,27 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
 import './globals.css'
+import '@/editable/theme/editable-global.css'
 
-import { ThemeProvider } from '@/components/theme-provider'
-import { Toaster } from '@/components/ui/toaster'
-import { AuthProvider } from '@/lib/auth-context'
 import { buildSiteMetadata } from '@/lib/seo'
-import { getFactoryState } from '@/design/factory/get-factory-state'
+import { getEditableBodyProps } from '@/editable/shell/editable-body'
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildSiteMetadata()
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const { recipe, brandPack } = getFactoryState()
+  const body = getEditableBodyProps()
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body
-        data-site-shell={recipe.homeLayout}
-        data-motion-pack={recipe.motionPack}
-        className={`${brandPack.bodyClassName} ${brandPack.fontClassName} ${brandPack.paletteClassName}`}
+        data-site-shell={body.dataSiteShell}
+        data-motion-pack={body.dataMotionPack}
+        className={body.className}
+        style={body.style}
       >
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   )

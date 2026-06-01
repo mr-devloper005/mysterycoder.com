@@ -55,10 +55,9 @@ const getFreshestDate = (post: SitePost, fallback: Date) => {
   return fallback;
 };
 
-const shouldExcludePost = (post: SitePost, task: string) => {
+const shouldExcludePost = (post: SitePost) => {
   const slug = typeof post.slug === "string" ? post.slug.trim().toLowerCase() : "";
   if (!slug) return true;
-  if (task === "comment") return true;
   return EXCLUDED_SLUG_PREFIXES.some((prefix) => slug.startsWith(prefix));
 };
 
@@ -104,7 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const postRoutes: MetadataRoute.Sitemap = (feed?.posts || [])
     .map((post) => ({ post, task: getTaskFromPost(post) }))
-    .filter(({ post, task }) => !shouldExcludePost(post, task))
+    .filter(({ post }) => !shouldExcludePost(post))
     .map(({ post, task }) => {
       const route = taskRouteMap.get(task) || "/posts";
       const lastModified = getFreshestDate(post, now);

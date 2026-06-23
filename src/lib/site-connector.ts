@@ -113,3 +113,38 @@ export async function fetchSiteFeed<TPost = SitePost>(
   }
   return fetchPublicJson<SiteFeed<TPost>>(`/feed?${params.toString()}`, options);
 }
+
+export type SiteAd = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  linkUrl: string;
+  altText?: string | null;
+  openInNewTab?: boolean;
+  slot: string;
+  width?: number | null;
+  height?: number | null;
+  /** Higher shows first in the rotation order. Panel-controlled. */
+  priority?: number;
+  /** Relative frequency in the rotation (1 = normal, higher = appears more often). Panel-controlled. */
+  weight?: number;
+  /** How long this ad stays on screen before rotating, in ms. Panel-controlled; falls back to the slot default. */
+  durationMs?: number | null;
+};
+
+/**
+ * Fetch ads targeted to this site (by SITE_CODE) from the Master Panel.
+ * The panel resolves targeting (global / category / specific sites), scheduling,
+ * and priority, so the site only ever receives the ads it should render.
+ * Pass a `slot` to scope the request to one placement (e.g. "sidebar", "in-feed").
+ * Returns [] on any error/misconfig (uses the shared stale-fallback layer).
+ */
+export async function fetchSiteAds(
+  slot?: string,
+  options?: { fresh?: boolean; timeoutMs?: number }
+): Promise<SiteAd[]> {
+  const safeSlot = typeof slot === "string" ? slot.trim() : "";
+  const path = safeSlot ? `/ads?slot=${encodeURIComponent(safeSlot)}` : "/ads";
+  const ads = await fetchPublicJson<SiteAd[]>(path, options);
+  return Array.isArray(ads) ? ads : [];
+}

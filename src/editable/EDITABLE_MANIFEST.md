@@ -23,6 +23,9 @@ src/editable/pages/TaskArchivePage.tsx
 src/editable/pages/TaskDetailPage.tsx
 src/editable/pages/*Page.tsx
 src/editable/cards/PostCards.tsx
+src/editable/ads/Ads.tsx
+src/editable/ads/AdCreative.tsx
+src/editable/ads/AdRotator.tsx
 src/editable/sections/*.tsx
 src/editable/content/*.ts
 src/editable/theme/*.ts

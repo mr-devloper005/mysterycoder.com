@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { SiteAd } from '@/lib/site-connector'
-import { AdCreative } from './AdCreative'
+import { AdFrame, type AdSkin } from './ad-frame'
 
 const MIN_DURATION_MS = 1500
 const FALLBACK_DURATION_MS = 7000
@@ -37,21 +37,24 @@ function buildSequence(ads: SiteAd[]): SiteAd[] {
  * Smart, panel-driven rotator. Each ad stays for its own `durationMs`; ordering and
  * frequency come from `priority`/`weight`. Rotation pauses while the tab is hidden
  * (no wasted impressions) and, by default, while the user hovers (so they can click).
+ * Rendering is delegated to the locked AdFrame, so shape/fit stay guaranteed.
  */
 export function AdRotator({
   ads,
+  size,
+  skin,
   defaultDurationMs = FALLBACK_DURATION_MS,
   pauseOnHover = true,
   className,
-  imgClassName,
   showLabel,
   label,
 }: {
   ads: SiteAd[]
+  size?: string
+  skin?: AdSkin
   defaultDurationMs?: number
   pauseOnHover?: boolean
   className?: string
-  imgClassName?: string
   showLabel?: boolean
   label?: string
 }) {
@@ -80,7 +83,6 @@ export function AdRotator({
     const tick = () => {
       const hidden = typeof document !== 'undefined' && document.hidden
       if (pausedRef.current || hidden) {
-        // hold the current ad while paused / tab hidden, re-check shortly
         timer = setTimeout(tick, PAUSED_RECHECK_MS)
         return
       }
@@ -100,7 +102,7 @@ export function AdRotator({
       onMouseEnter={pauseOnHover ? () => { pausedRef.current = true } : undefined}
       onMouseLeave={pauseOnHover ? () => { pausedRef.current = false } : undefined}
     >
-      <AdCreative ad={current} imgClassName={imgClassName} showLabel={showLabel} label={label} />
+      <AdFrame ad={current} size={size} skin={skin} showLabel={showLabel} label={label} />
     </div>
   )
 }

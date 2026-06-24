@@ -1,0 +1,119 @@
+// 🔒 LOCKED — the unbreakable ad frame. Enforces the slot's aspect ratio + fit
+// (from ad-slots.ts) so the creative is ALWAYS shown fully and undistorted,
+// regardless of how a page or theme styles the wrapper. The `skin` prop lets the
+// editable theme layer control purely cosmetic things (radius, border, shadow,
+// background, label) — but it can never affect the locked shape/fit.
+
+import type { CSSProperties } from 'react'
+import { getAdSlot } from '@/lib/ads/ad-slots'
+import type { SiteAd } from '@/lib/site-connector'
+
+/** Cosmetic-only tokens the theme may set. None of these touch shape/fit. */
+export type AdSkin = {
+  radius?: string
+  border?: string
+  shadow?: string
+  background?: string
+  padding?: string
+  /** Tailwind/utility classes for the "Sponsored" label (e.g. brand colors). */
+  labelClassName?: string
+}
+
+export function AdFrame({
+  ad,
+  size,
+  skin,
+  className,
+  showLabel = false,
+  label = 'Sponsored',
+  eager = false,
+}: {
+  ad: SiteAd
+  size?: string
+  skin?: AdSkin
+  className?: string
+  showLabel?: boolean
+  label?: string
+  eager?: boolean
+}) {
+  const spec = getAdSlot(ad.slot, size) // local slot contract (fallback)
+
+  // The Master Panel validates every ad's image against the slot size, so when the
+  // panel sends real dimensions we use THOSE — the banner then looks pixel-identical
+  // in the panel and on the site (single source of truth = the panel).
+  const hasPanelDims =
+    typeof ad.width === 'number' && typeof ad.height === 'number' && ad.width > 0 && ad.height > 0
+  const aspectRatio = hasPanelDims ? `${ad.width} / ${ad.height}` : spec.aspectRatio
+  const maxWidth = hasPanelDims ? (ad.width as number) : spec.maxWidth
+
+  const frameStyle: CSSProperties = {
+    position: 'relative',
+    display: 'block',
+    width: '100%',
+    maxWidth, // 🔒 never over-stretches
+    borderRadius: skin?.radius,
+    border: skin?.border,
+    boxShadow: skin?.shadow,
+    padding: skin?.padding,
+    background: skin?.background,
+  }
+
+  const boxStyle: CSSProperties = {
+    display: 'block',
+    aspectRatio, // 🔒 shape from panel-validated size (or slot contract)
+    overflow: 'hidden',
+    borderRadius: 'inherit',
+    background: skin?.background ?? '#f3f4f6',
+  }
+
+  const imgStyle: CSSProperties = {
+    width: '100%',
+    height: '100%',
+    objectFit: spec.fit, // 🔒 'contain' → never cropped / squashed / stretched
+    display: 'block',
+  }
+
+  return (
+    <a
+      href={ad.linkUrl}
+      target={ad.openInNewTab === false ? undefined : '_blank'}
+      rel="sponsored noopener noreferrer"
+      data-ad-slot={ad.slot}
+      data-ad-id={ad.id}
+      aria-label={ad.altText || ad.name}
+      className={className}
+      style={frameStyle}
+    >
+      {showLabel ? (
+        <span
+          className={skin?.labelClassName}
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            zIndex: 10,
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            padding: '2px 6px',
+            borderRadius: 4,
+            // fall back to a neutral chip only when the theme didn't supply one
+            ...(skin?.labelClassName ? {} : { background: 'rgba(0,0,0,0.55)', color: '#fff' }),
+          }}
+        >
+          {label}
+        </span>
+      ) : null}
+      <span style={boxStyle}>
+        <img
+          src={ad.imageUrl}
+          alt={ad.altText || ad.name}
+          style={imgStyle}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+        />
+      </span>
+    </a>
+  )
+}

@@ -19,6 +19,17 @@ export type AdSkin = {
   labelClassName?: string
 }
 
+/** Ensure an ad link is an absolute URL so it never resolves against the host site. */
+export function normalizeAdHref(url?: string | null): string {
+  const u = (url || '').trim()
+  if (!u) return '#'
+  if (/^https?:\/\//i.test(u)) return u // already absolute
+  if (u.startsWith('//')) return `https:${u}` // protocol-relative
+  if (u.startsWith('/')) return u // intentional internal path
+  if (/^(mailto:|tel:)/i.test(u)) return u
+  return `https://${u}` // bare domain like "apcreatiu.com"
+}
+
 export function AdFrame({
   ad,
   size,
@@ -73,9 +84,13 @@ export function AdFrame({
     display: 'block',
   }
 
+  // A link like "apcreatiu.com" (no scheme) is treated as a relative path by the
+  // browser → it would open as /apcreatiu.com on the current site. Add https://.
+  const href = normalizeAdHref(ad.linkUrl)
+
   return (
     <a
-      href={ad.linkUrl}
+      href={href}
       target={ad.openInNewTab === false ? undefined : '_blank'}
       rel="sponsored noopener noreferrer"
       data-ad-slot={ad.slot}

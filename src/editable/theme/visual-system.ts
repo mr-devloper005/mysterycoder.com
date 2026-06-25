@@ -27,16 +27,16 @@ export const visualPresets = {
   'luxury-atelier': {
     label: 'Luxury Atelier',
     mood: 'premium, restrained, polished',
-    fontDirection: 'high-contrast display headings with spacious tracking',
+    fontDirection: 'Cormorant Garamond headlines with Outfit body',
     colors: {
-      background: '#0f1110',
-      foreground: '#f6ead8',
-      muted: '#b8aa94',
-      primary: '#d7b56d',
+      background: '#0c0e14',
+      foreground: '#f2efe8',
+      muted: '#97a0b3',
+      primary: '#d4a853',
       accent: '#7f1d1d',
-      surface: '#181a17',
+      surface: '#1a2130',
     },
-    shape: 'large dark panels, gold hairlines, generous negative space',
+    shape: 'dark panels, gold hairlines, editorial spacing',
   },
   'brutalist-index': {
     label: 'Brutalist Index',
@@ -71,11 +71,11 @@ export const visualPresets = {
     mood: 'clean, fast, useful',
     fontDirection: 'modern sans with crisp mono data accents',
     colors: {
-      background: '#f6f9fc',
-      foreground: '#101827',
-      muted: '#5f6b7a',
-      primary: '#0f172a',
-      accent: '#00a6ff',
+      background: '#f7f9fc',
+      foreground: '#0f172a',
+      muted: '#56607a',
+      primary: '#4f46e5',
+      accent: '#4f46e5',
       surface: '#ffffff',
     },
     shape: 'clean grids, pill filters, sharp information hierarchy',
@@ -112,14 +112,7 @@ export const visualPresets = {
 
 export const visualSystem = {
   productKind: slot4BrandConfig.productKind,
-  recommendedPreset:
-    slot4BrandConfig.productKind === 'visual'
-      ? 'visual-gallery'
-      : slot4BrandConfig.productKind === 'editorial'
-        ? 'editorial-paper'
-        : slot4BrandConfig.productKind === 'directory'
-          ? 'tech-directory'
-          : 'organic-journal',
+  recommendedPreset: 'tech-directory',
   radius: {
     sm: '0.75rem',
     md: '1.25rem',
@@ -128,7 +121,7 @@ export const visualSystem = {
   },
   motion: {
     pageLoad: 'animate-in fade-in slide-in-from-bottom-4 duration-700',
-    cardHover: 'transition duration-300 hover:-translate-y-1 hover:shadow-xl',
+    cardHover: 'transition duration-500 hover:-translate-y-1.5 hover:shadow-2xl',
     softHover: 'transition duration-300 hover:opacity-85',
     reduceMotionSafe: 'motion-reduce:transform-none motion-reduce:transition-none',
   },

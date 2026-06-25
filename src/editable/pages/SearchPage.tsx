@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, Filter, Search } from 'lucide-react'
 import { buildPageMetadata } from '@/lib/seo'
 import { fetchSiteFeed } from '@/lib/site-connector'
-import { buildPostUrl, getPostTaskKey } from '@/lib/task-data'
+import { getPostTaskKey } from '@/lib/task-data'
 import { getMockPostsForTask } from '@/lib/mock-posts'
 import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
 import type { SitePost } from '@/lib/site-connector'
@@ -48,7 +48,10 @@ const matches = (post: SitePost, query: string, category: string, task: string) 
 
 function SearchResultCard({ post, index }: { post: SitePost; index: number }) {
   const task = getPostTaskKey(post) as TaskKey | null
-  const href = task ? buildPostUrl(task, post.slug) : `/article/${post.slug}`
+  // Route from the task config (e.g. /listing/<slug>); buildPostUrl can fall
+  // back to /posts for tasks missing from the enabled taskViews map, which 404s.
+  const taskRoute = SITE_CONFIG.tasks.find((item) => item.key === task)?.route
+  const href = `${taskRoute || `/${task || 'article'}`}/${post.slug}`
   const image = getImage(post)
   const summary = summaryOf(post)
   const taskLabel = SITE_CONFIG.tasks.find((item) => item.key === task)?.label || 'Post'

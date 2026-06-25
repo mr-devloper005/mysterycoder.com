@@ -11,14 +11,27 @@ const getPostType = (post: SitePost) => {
   const explicit = typeof (content as any).type === "string" ? String((content as any).type) : "";
   if (explicit) return explicit;
   if (Array.isArray(post.tags)) {
-    const tag = post.tags.find((item) => typeof item === "string");
+    const knownTypes = new Set(SITE_CONFIG.tasks.flatMap((task) => [task.key, task.contentType]));
+    const tag = post.tags.find((item) => typeof item === "string" && knownTypes.has(item as TaskKey));
     if (tag) return tag;
   }
   return "";
 };
 
+
+const matchesTaskContentType = (post: SitePost, type: string) => {
+  const postType = getPostType(post);
+  // Older/public API payloads can omit task/type even when the feed endpoint was already scoped by task.
+  // In that case, trust the current route/feed task instead of hiding a valid post as 404.
+  return !postType || postType === type;
+};
+
 export const getPostTaskKey = (post: SitePost): TaskKey | null => {
   const postType = getPostType(post);
+  if (!postType) {
+    const enabledTasks = SITE_CONFIG.tasks.filter((task) => task.enabled);
+    return enabledTasks.length === 1 ? enabledTasks[0].key : null;
+  }
   const matched = SITE_CONFIG.tasks.find((task) => task.contentType === postType);
   if (matched) return matched.key;
   const direct = SITE_CONFIG.tasks.find((task) => task.key === (postType as TaskKey));
@@ -86,7 +99,7 @@ export const fetchPaginatedTaskPosts = async (
           ? String((post as any).status).toUpperCase()
           : "";
       if (status && status !== "PUBLISHED") return false;
-      if (getPostType(post) !== type) return false;
+      if (!matchesTaskContentType(post, type)) return false;
       const content = post.content && typeof post.content === "object" ? post.content : {};
       const postCategory = typeof (content as any).category === "string" ? (content as any).category : "";
       if (postCategory && !isValidCategory(postCategory)) return false;
@@ -148,7 +161,7 @@ export const fetchHomeTimeSections = async (
 
   return windows
     .map((window, index) => {
-      const posts = (feeds[index]?.posts || []).filter((post) => getPostType(post) === type).slice(0, limit);
+      const posts = (feeds[index]?.posts || []).filter((post) => matchesTaskContentType(post, type)).slice(0, limit);
       return {
         key: window.key,
         title: window.title,
@@ -178,7 +191,7 @@ export const fetchTaskPosts = async (
             ? String((post as any).status).toUpperCase()
             : "";
         if (status && status !== "PUBLISHED") return false;
-        if (getPostType(post) !== type) return false;
+        if (!matchesTaskContentType(post, type)) return false;
         const content = post.content && typeof post.content === "object" ? post.content : {};
         const category = typeof (content as any).category === "string" ? (content as any).category : "";
         return !category || isValidCategory(category);
@@ -205,14 +218,14 @@ export const fetchTaskPostBySlug = async (task: TaskKey, slug: string) => {
   const allowMockFallback = process.env.NEXT_PUBLIC_USE_MOCK_CONTENT === "true";
   const type = getTaskContentType(task);
   const resolveFromFeed = (feed: SiteFeed<SitePost> | null) =>
-    feed?.posts.find((post) => post.slug === slug && getPostType(post) === type) || null;
+    feed?.posts.find((post) => post.slug === slug && matchesTaskContentType(post, type)) || null;
 
   try {
     const direct = await fetchSitePost<SitePost>(slug, { task: type });
-    if (direct?.post && getPostType(direct.post) === type) return direct.post;
+    if (direct?.post && matchesTaskContentType(direct.post, type)) return direct.post;
 
     const freshDirect = await fetchSitePost<SitePost>(slug, { fresh: true, task: type });
-    if (freshDirect?.post && getPostType(freshDirect.post) === type) return freshDirect.post;
+    if (freshDirect?.post && matchesTaskContentType(freshDirect.post, type)) return freshDirect.post;
 
     // Legacy fallback only: useful when old master-panel versions do not expose /post/:slug.
     const cachedFeed = await fetchSiteFeed(1000, { task: type });
@@ -222,6 +235,13 @@ export const fetchTaskPostBySlug = async (task: TaskKey, slug: string) => {
     const freshFeed = await fetchSiteFeed(1000, { fresh: true, task: type });
     const freshMatch = resolveFromFeed(freshFeed);
     if (freshMatch) return freshMatch;
+
+    // Some legacy AI-posting records are present in the public site feed but do not expose
+    // task/type metadata, so task-scoped endpoints can miss them. Use exact slug as the
+    // final source of truth before returning 404.
+    const unscopedFeed = await fetchSiteFeed(1000, { fresh: true });
+    const unscopedMatch = resolveFromFeed(unscopedFeed);
+    if (unscopedMatch) return unscopedMatch;
   } catch {
     // fall through to optional mock data
   }

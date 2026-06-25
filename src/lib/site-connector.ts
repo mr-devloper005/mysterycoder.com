@@ -118,6 +118,7 @@ export type SiteAd = {
   id: string;
   name: string;
   imageUrl: string;
+  mediaType?: "image" | "video" | string;
   linkUrl: string;
   altText?: string | null;
   openInNewTab?: boolean;

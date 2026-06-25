@@ -121,14 +121,33 @@ export function AdFrame({
         </span>
       ) : null}
       <span style={boxStyle}>
-        <img
-          src={ad.imageUrl}
-          alt={ad.altText || ad.name}
-          style={imgStyle}
-          loading={eager ? 'eager' : 'lazy'}
-          decoding="async"
-        />
+        {isVideoAd(ad) ? (
+          <video
+            src={ad.imageUrl}
+            style={imgStyle}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label={ad.altText || ad.name}
+          />
+        ) : (
+          <img
+            src={ad.imageUrl}
+            alt={ad.altText || ad.name}
+            style={imgStyle}
+            loading={eager ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+        )}
       </span>
     </a>
   )
+}
+
+/** True when the ad creative is a video (panel mediaType, or a video URL). */
+function isVideoAd(ad: SiteAd): boolean {
+  if (ad.mediaType === 'video') return true
+  return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(ad.imageUrl || '')
 }
